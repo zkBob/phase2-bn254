@@ -1,13 +1,13 @@
-use powersoftau::batched_accumulator::BatchedAccumulator;
-use powersoftau::parameters::UseCompression;
-use powersoftau::utils::{blank_hash, calculate_hash};
+use fawkes_crypto_powersoftau::batched_accumulator::BatchedAccumulator;
+use fawkes_crypto_powersoftau::parameters::UseCompression;
+use fawkes_crypto_powersoftau::utils::{blank_hash, calculate_hash};
 
 use bellman_ce::pairing::bn256::Bn256;
 use memmap::*;
 use std::fs::OpenOptions;
 use std::io::Write;
 
-use powersoftau::parameters::CeremonyParams;
+use fawkes_crypto_powersoftau::parameters::CeremonyParams;
 
 const COMPRESS_NEW_CHALLENGE: UseCompression = UseCompression::No;
 

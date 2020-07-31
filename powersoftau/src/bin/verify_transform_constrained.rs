@@ -1,4 +1,4 @@
-use powersoftau::{
+use fawkes_crypto_powersoftau::{
     batched_accumulator::BatchedAccumulator,
     keypair::PublicKey,
     parameters::{CeremonyParams, CheckForCorrectness, UseCompression},

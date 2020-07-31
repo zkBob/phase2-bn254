@@ -1,7 +1,7 @@
 #![feature(test)]
 
 extern crate ff;
-extern crate pairing_ce;
+extern crate fawkes_crypto_pairing_ce;
 extern crate rand;
 extern crate test;
 

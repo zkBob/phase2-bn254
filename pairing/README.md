@@ -1,5 +1,7 @@
 # pairing "community edition"
 
+Forked from [kobigurk/phase2-bn254](https://github.com/kobigurk/phase2-bn254).
+
 Now published as `pairing_ce` to `crates.io` for users convenience.
 
 Originally developed by ZCash, with extensions from us to make it a little more pleasant. 

@@ -1,9 +1,9 @@
 use bellman_ce::pairing::bn256::Bn256;
 use bellman_ce::pairing::bn256::{G1, G2};
 use bellman_ce::pairing::{CurveAffine, CurveProjective};
-use powersoftau::batched_accumulator::*;
-use powersoftau::parameters::CeremonyParams;
-use powersoftau::*;
+use fawkes_crypto_powersoftau::batched_accumulator::*;
+use fawkes_crypto_powersoftau::parameters::CeremonyParams;
+use fawkes_crypto_powersoftau::*;
 
 use crate::parameters::*;
 

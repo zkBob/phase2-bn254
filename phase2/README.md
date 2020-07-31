@@ -1,5 +1,7 @@
 # phase2 [![Crates.io](https://img.shields.io/crates/v/phase2.svg)](https://crates.io/crates/phase2) #
 
+Forked from [kobigurk/phase2-bn254](https://github.com/kobigurk/phase2-bn254).
+
 This library is still under development.
 
 ## WebAssembly how-to

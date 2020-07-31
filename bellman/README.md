@@ -1,5 +1,7 @@
 # bellman "Community edition"
- 
+
+Forked from [kobigurk/phase2-bn254](https://github.com/kobigurk/phase2-bn254).
+
 Originally developed for ZCash, with extensions from us to make it a little more pleasant. Uses our "community edition" pairing for Ethereum's BN256 curve. Now published as `bellman_ce` on `crate.io` to allow ease of use.
 
 ## Features

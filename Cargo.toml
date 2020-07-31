@@ -1,0 +1,8 @@
+[workspace]
+
+members = [
+    "bellman",
+    "pairing",
+    "phase2",
+    "powersoftau"
+]

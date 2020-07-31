@@ -1,5 +1,5 @@
 extern crate rand;
-extern crate phase2;
+extern crate fawkes_crypto_phase2;
 extern crate num_bigint;
 extern crate num_traits;
 extern crate blake2;
@@ -12,7 +12,7 @@ use itertools::Itertools;
 use std::fs::File;
 use std::fs::OpenOptions;
 
-use phase2::parameters::MPCParameters;
+use fawkes_crypto_phase2::parameters::MPCParameters;
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

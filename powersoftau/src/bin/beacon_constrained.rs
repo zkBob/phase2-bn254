@@ -1,5 +1,5 @@
 extern crate hex;
-use powersoftau::{
+use fawkes_crypto_powersoftau::{
     batched_accumulator::BatchedAccumulator,
     keypair::keypair,
     parameters::{CeremonyParams, CheckForCorrectness, UseCompression},

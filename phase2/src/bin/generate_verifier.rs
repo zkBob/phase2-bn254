@@ -1,7 +1,7 @@
-extern crate phase2;
+extern crate fawkes_crypto_phase2;
 extern crate exitcode;
 
-use phase2::circom_circuit::{
+use fawkes_crypto_phase2::circom_circuit::{
     load_params_file,
     create_verifier_sol_file
 };

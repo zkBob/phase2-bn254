@@ -1,5 +1,5 @@
 use bellman_ce::pairing::bn256::Bn256;
-use powersoftau::{
+use fawkes_crypto_powersoftau::{
     batched_accumulator::BatchedAccumulator,
     parameters::{CeremonyParams, CheckForCorrectness, UseCompression},
     utils::{calculate_hash, reduced_hash},

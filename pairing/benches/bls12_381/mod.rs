@@ -6,8 +6,8 @@ mod fr;
 
 use rand::{Rand, SeedableRng, XorShiftRng};
 
-use pairing::bls12_381::*;
-use pairing::{CurveAffine, Engine};
+use fawkes_crypto_pairing_ce::bls12_381::*;
+use fawkes_crypto_pairing_ce::{CurveAffine, Engine};
 
 #[bench]
 fn bench_pairing_g1_preparation(b: &mut ::test::Bencher) {

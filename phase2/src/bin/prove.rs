@@ -1,4 +1,4 @@
-extern crate phase2;
+extern crate fawkes_crypto_phase2;
 extern crate bellman_ce;
 extern crate exitcode;
 extern crate serde;
@@ -8,7 +8,7 @@ extern crate itertools;
 
 use std::fs;
 use bellman_ce::pairing::bn256::Bn256;
-use phase2::circom_circuit::{
+use fawkes_crypto_phase2::circom_circuit::{
     load_params_file,
     prove,
     verify,
