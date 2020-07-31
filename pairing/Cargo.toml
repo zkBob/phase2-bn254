@@ -12,9 +12,9 @@ authors = [
 license = "MIT/Apache-2.0"
 
 description = "Pairing-friendly elliptic curve library"
-documentation = "https://docs.rs/pairing/"
-homepage = "https://github.com/matter-labs/pairing"
-repository = "https://github.com/matter-labs/pairing"
+documentation = "https://docs.rs/fawkes_crypto_pairing_ce/"
+homepage = "https://github.com/zeropoolnetwork/phase2-bn254"
+repository = "https://github.com/zeropoolnetwork/phase2-bn254"
 edition = "2018"
 
 [dependencies]
