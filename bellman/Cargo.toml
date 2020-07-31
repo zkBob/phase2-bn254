@@ -18,7 +18,7 @@ bit-vec = "0.6.1"
 futures = "0.1"
 cfg-if = "0.1.7"
 
-pairing = {package = "fawkes-crypto-pairing_ce", path = "../pairing" }
+pairing = {package = "fawkes-crypto-pairing_ce", version = "0.18.0", path = "../pairing" }
 byteorder = "1"
 
 futures-cpupool = {version = "0.1", optional = true}
