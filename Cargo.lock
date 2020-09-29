@@ -194,7 +194,7 @@ checksum = "de853764b47027c2e862a995c34978ffa63c1501f2e15f987ba11bd4f9bba193"
 
 [[package]]
 name = "fawkes-crypto-bellman_ce"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "bit-vec",
  "blake2-rfc",

@@ -6,7 +6,7 @@ homepage = "https://github.com/zeropoolnetwork/phase2-bn254"
 license = "MIT/Apache-2.0"
 name = "fawkes-crypto-bellman_ce"
 repository = "https://github.com/zeropoolnetwork/phase2-bn254"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2018"
 
 [lib]
