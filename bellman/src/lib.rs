@@ -4,7 +4,7 @@
 
 extern crate cfg_if;
 pub extern crate pairing;
-extern crate rand;
+pub extern crate rand;
 extern crate bit_vec;
 extern crate byteorder;
 
