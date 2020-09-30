@@ -797,6 +797,8 @@ pub mod g1 {
 
             if !affine.is_on_curve() {
                 Err(GroupDecodingError::NotOnCurve)
+            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {
+                Err(GroupDecodingError::NotInSubgroup)
             } else {
                 Ok(affine)
             }
@@ -1325,7 +1327,7 @@ pub mod g2 {
     use ff::{BitIterator, Field, PrimeField, PrimeFieldRepr, SqrtField};
     use rand::{Rand, Rng};
     use std::fmt;
-    use crate::{CurveAffine, CurveProjective, EncodedPoint, Engine, GroupDecodingError};
+    use crate::{RawEncodable, CurveAffine, CurveProjective, EncodedPoint, Engine, GroupDecodingError};
 
     curve_impl!(
         "G2",
@@ -1462,6 +1464,78 @@ pub mod g2 {
             }
 
             res
+        }
+    }
+
+
+    impl RawEncodable for G2Affine {
+        fn into_raw_uncompressed_le(&self) -> Self::Uncompressed {
+            let mut res = Self::Uncompressed::empty();
+            {
+                let mut writer = &mut res.0[..];
+
+                self.x.c0.into_raw_repr().write_le(&mut writer).unwrap();
+                self.x.c1.into_raw_repr().write_le(&mut writer).unwrap();
+                self.y.c0.into_raw_repr().write_le(&mut writer).unwrap();
+                self.y.c1.into_raw_repr().write_le(&mut writer).unwrap();
+            }
+
+            res
+        }
+
+        fn from_raw_uncompressed_le_unchecked(
+            encoded: &Self::Uncompressed, 
+            _infinity: bool
+        ) -> Result<Self, GroupDecodingError> {
+            let copy = encoded.0;
+            if copy.iter().all(|b| *b == 0) {
+                return Ok(Self::zero());
+            }
+
+            let mut x_c0 = FqRepr([0; 6]);
+            let mut x_c1 = FqRepr([0; 6]);
+            let mut y_c0 = FqRepr([0; 6]);
+            let mut y_c1 = FqRepr([0; 6]);
+
+            {
+                let mut reader = &copy[..];
+                x_c0.read_le(&mut reader).unwrap();
+                x_c1.read_le(&mut reader).unwrap();
+                y_c0.read_le(&mut reader).unwrap();
+                y_c1.read_le(&mut reader).unwrap();
+            }
+
+            let x = Fq2 {
+                c0:Fq::from_raw_repr(x_c0).map_err(|e| {
+                    GroupDecodingError::CoordinateDecodingError("x.c0 coordinate", e)
+                })?, 
+                c1:Fq::from_raw_repr(x_c1).map_err(|e| {
+                    GroupDecodingError::CoordinateDecodingError("x.c1 coordinate", e)
+                })?
+            };
+
+            let y = Fq2 {
+                c0:Fq::from_raw_repr(y_c0).map_err(|e| {
+                    GroupDecodingError::CoordinateDecodingError("y.c0 coordinate", e)
+                })?, 
+                c1:Fq::from_raw_repr(y_c1).map_err(|e| {
+                    GroupDecodingError::CoordinateDecodingError("y.c1 coordinate", e)
+                })?
+            };
+
+            Ok(G2Affine {x, y, infinity: false})
+        }
+
+        fn from_raw_uncompressed_le(encoded: &Self::Uncompressed, _infinity: bool) -> Result<Self, GroupDecodingError> {
+            let affine = Self::from_raw_uncompressed_le_unchecked(&encoded, _infinity)?;
+
+            if !affine.is_on_curve() {
+                Err(GroupDecodingError::NotOnCurve)
+            } else if !affine.is_in_correct_subgroup_assuming_on_curve() {
+                Err(GroupDecodingError::NotInSubgroup)
+            } else {
+                Ok(affine)
+            }
         }
     }
 

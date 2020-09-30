@@ -73,7 +73,7 @@ pub trait Engine: ScalarEngine {
             Pair = Self::G1Affine,
             PairingResult = Self::Fqk,
         >
-        + From<Self::G2>;
+        + From<Self::G2> + RawEncodable;
 
     /// The base field that hosts G1.
     type Fq: PrimeField + SqrtField;
