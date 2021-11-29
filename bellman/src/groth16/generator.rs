@@ -1,5 +1,3 @@
-use crate::log::Stopwatch;
-
 use rand::Rng;
 
 use std::sync::Arc;
@@ -250,8 +248,6 @@ pub fn generate_parameters<E, C>(
         // Compute powers of tau
         elog_verbose!("computing powers of tau...");
 
-        let stopwatch = Stopwatch::new();
-
         {
             let powers_of_tau = powers_of_tau.as_mut();
             worker.scope(powers_of_tau.len(), |scope, chunk| {
@@ -268,7 +264,6 @@ pub fn generate_parameters<E, C>(
                 }
             });
         }
-        elog_verbose!("powers of tau stage 1 done in {} s", stopwatch.elapsed());
 
         // coeff = t(x) / delta
         let mut coeff = powers_of_tau.z(&tau);
@@ -276,7 +271,6 @@ pub fn generate_parameters<E, C>(
 
         elog_verbose!("computing the H query with multiple threads...");
 
-        let stopwatch = Stopwatch::new();
 
         // Compute the H query with multiple threads
         worker.scope(h.len(), |scope, chunk| {
@@ -300,18 +294,14 @@ pub fn generate_parameters<E, C>(
                 });
             }
         });
-        elog_verbose!("computing the H query done in {} s", stopwatch.elapsed());
     }
 
     elog_verbose!("using inverse FFT to convert powers of tau to Lagrange coefficients...");
-
-    let stopwatch = Stopwatch::new();
 
     // Use inverse FFT to convert powers of tau to Lagrange coefficients
     powers_of_tau.ifft(&worker);
     let powers_of_tau = powers_of_tau.into_coeffs();
 
-    elog_verbose!("powers of tau stage 2 done in {} s", stopwatch.elapsed());
     let mut a = vec![E::G1::zero(); assembly.num_inputs + assembly.num_aux];
     let mut b_g1 = vec![E::G1::zero(); assembly.num_inputs + assembly.num_aux];
     let mut b_g2 = vec![E::G2::zero(); assembly.num_inputs + assembly.num_aux];
@@ -319,7 +309,6 @@ pub fn generate_parameters<E, C>(
     let mut l = vec![E::G1::zero(); assembly.num_aux];
 
     elog_verbose!("evaluating polynomials...");
-    let stopwatch = Stopwatch::new();
 
     fn eval<E: Engine>(
         // wNAF window tables
@@ -471,8 +460,6 @@ pub fn generate_parameters<E, C>(
         &beta,
         &worker
     );
-
-    elog_verbose!("evaluating polynomials done in {} s", stopwatch.elapsed());
 
     // Don't allow any elements be unconstrained, so that
     // the L query is always fully dense.
