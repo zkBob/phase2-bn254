@@ -262,7 +262,7 @@ impl<E: Engine, G: Group<E>> EvaluationDomain<E, G> {
 
 pub(crate) fn best_fft<E: Engine, T: Group<E>>(a: &mut [T], worker: &Worker, omega: &E::Fr, log_n: u32)
 {
-    let log_cpus = worker.log_num_cpus();
+    let log_cpus = worker.log_num_threads();
 
     if log_n <= log_cpus {
         serial_fft(a, omega, log_n);

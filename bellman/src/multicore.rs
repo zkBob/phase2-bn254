@@ -1,110 +1,215 @@
-//! This is an interface for dealing with the kinds of
-//! parallel computations involved in bellman. It's
-//! currently just a thin wrapper around CpuPool and
-//! crossbeam but may be extended in the future to
-//! allow for various parallelism strategies.
+//! An interface for dealing with the kinds of parallel computations involved in
+//! `bellman`. It's currently just a thin wrapper around [`rayon`] but may be
+//! extended in the future to allow for various parallelism strategies.
 
-extern crate num_cpus;
-extern crate futures;
-extern crate futures_cpupool;
-extern crate crossbeam;
+#[cfg(feature = "multicore")]
+mod implementation {
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
-use self::futures::{Future, IntoFuture, Poll};
-use self::futures_cpupool::{CpuPool, CpuFuture};
-use self::crossbeam::thread::{Scope};
+    use crossbeam_channel::{bounded, Receiver};
+    use lazy_static::lazy_static;
+    use log::{error, trace};
+    use rayon::current_num_threads;
 
-#[derive(Clone)]
-pub struct Worker {
-    cpus: usize,
-    pool: CpuPool
-}
+    static WORKER_SPAWN_COUNTER: AtomicUsize = AtomicUsize::new(0);
 
-impl Worker {
-    // We don't expose this outside the library so that
-    // all `Worker` instances have the same number of
-    // CPUs configured.
-    pub(crate) fn new_with_cpus(cpus: usize) -> Worker {
-        Worker {
-            cpus: cpus,
-            pool: CpuPool::new(cpus)
+    lazy_static! {
+        // See Worker::compute below for a description of this.
+        static ref WORKER_SPAWN_MAX_COUNT: usize = current_num_threads() * 4;
+    }
+
+    #[derive(Clone, Default)]
+    pub struct Worker {}
+
+    impl Worker {
+        pub fn new() -> Worker {
+            Worker {}
+        }
+
+        pub fn log_num_threads(&self) -> u32 {
+            log2_floor(current_num_threads())
+        }
+
+        pub fn compute<F, R>(&self, f: F) -> Waiter<R>
+            where
+                F: FnOnce() -> R + Send + 'static,
+                R: Send + 'static,
+        {
+            let (sender, receiver) = bounded(1);
+
+            // We keep track here of how many times spawn has been called.
+            // It can be called without limit, each time, putting a
+            // request for a new thread to execute a method on the
+            // ThreadPool.  However, if we allow it to be called without
+            // limits, we run the risk of memory exhaustion due to limited
+            // stack space consumed by all of the pending closures to be
+            // executed.
+            let previous_count = WORKER_SPAWN_COUNTER.fetch_add(1, Ordering::SeqCst);
+
+            // If the number of spawns requested has exceeded the number
+            // of cores available for processing by some factor (the
+            // default being 4), instead of requesting that we spawn a new
+            // thread, we instead execute the closure in the context of a
+            // scope call (which blocks the current thread) to help clear
+            // the growing work queue and minimize the chances of memory
+            // exhaustion.
+            if previous_count > *WORKER_SPAWN_MAX_COUNT {
+                let thread_index = rayon::current_thread_index().unwrap_or(0);
+                rayon::scope(move |_| {
+                    trace!("[{}] switching to scope to help clear backlog [threads: current {}, requested {}]",
+                        thread_index,
+                        current_num_threads(),
+                        WORKER_SPAWN_COUNTER.load(Ordering::SeqCst));
+                    let res = f();
+                    sender.send(res).unwrap();
+                    WORKER_SPAWN_COUNTER.fetch_sub(1, Ordering::SeqCst);
+                });
+            } else {
+                rayon::spawn(move || {
+                    let res = f();
+                    sender.send(res).unwrap();
+                    WORKER_SPAWN_COUNTER.fetch_sub(1, Ordering::SeqCst);
+                });
+            }
+
+            Waiter { receiver }
+        }
+
+        pub fn scope<'a, F, R>(&self, elements: usize, f: F) -> R
+            where
+                F: FnOnce(&rayon::Scope<'a>, usize) -> R + Send,
+                R: Send,
+        {
+            let num_threads = current_num_threads();
+            let chunk_size = if elements < num_threads {
+                1
+            } else {
+                elements / num_threads
+            };
+
+            rayon::scope(|scope| f(scope, chunk_size))
         }
     }
 
-    pub fn new() -> Worker {
-        Self::new_with_cpus(num_cpus::get())
+    pub struct Waiter<T> {
+        receiver: Receiver<T>,
     }
 
-    pub fn log_num_cpus(&self) -> u32 {
-        log2_floor(self.cpus)
-    }
+    impl<T> Waiter<T> {
+        /// Wait for the result.
+        pub fn wait(&self) -> T {
+            // This will be Some if this thread is in the global thread pool.
+            if rayon::current_thread_index().is_some() {
+                let msg = "wait() cannot be called from within a thread pool since that would lead to deadlocks";
+                // panic! doesn't necessarily kill the process, so we log as well.
+                error!("{}", msg);
+                panic!("{}", msg);
+            }
+            self.receiver.recv().unwrap()
+        }
 
-    pub fn compute<F, R>(
-        &self, f: F
-    ) -> WorkerFuture<R::Item, R::Error>
-        where F: FnOnce() -> R + Send + 'static,
-              R: IntoFuture + 'static,
-              R::Future: Send + 'static,
-              R::Item: Send + 'static,
-              R::Error: Send + 'static
-    {
-        WorkerFuture {
-            future: self.pool.spawn_fn(f)
+        /// One-off sending.
+        pub fn done(val: T) -> Self {
+            let (sender, receiver) = bounded(1);
+            sender.send(val).unwrap();
+
+            Waiter { receiver }
         }
     }
 
-    pub fn scope<'a, F, R>(
-        &self,
-        elements: usize,
-        f: F
-    ) -> R
-        where F: FnOnce(&Scope<'a>, usize) -> R
-    {
-        let chunk_size = if elements < self.cpus {
-            1
-        } else {
-            elements / self.cpus
-        };
+    fn log2_floor(num: usize) -> u32 {
+        assert!(num > 0);
 
-        crossbeam::scope(|scope| {
-            f(scope, chunk_size)
-        }).expect("must run")
+        let mut pow = 0;
+
+        while (1 << (pow + 1)) <= num {
+            pow += 1;
+        }
+
+        pow
+    }
+
+    #[test]
+    fn test_log2_floor() {
+        assert_eq!(log2_floor(1), 0);
+        assert_eq!(log2_floor(2), 1);
+        assert_eq!(log2_floor(3), 1);
+        assert_eq!(log2_floor(4), 2);
+        assert_eq!(log2_floor(5), 2);
+        assert_eq!(log2_floor(6), 2);
+        assert_eq!(log2_floor(7), 2);
+        assert_eq!(log2_floor(8), 3);
     }
 }
 
-pub struct WorkerFuture<T, E> {
-    future: CpuFuture<T, E>
-}
+#[cfg(not(feature = "multicore"))]
+mod implementation {
+    #[derive(Clone)]
+    pub struct Worker;
 
-impl<T: Send + 'static, E: Send + 'static> Future for WorkerFuture<T, E> {
-    type Item = T;
-    type Error = E;
+    impl Worker {
+        pub fn new() -> Worker {
+            Worker
+        }
 
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error>
-    {
-        self.future.poll()
+        pub fn log_num_threads(&self) -> u32 {
+            0
+        }
+
+        pub fn compute<F, R>(&self, f: F) -> Waiter<R>
+            where
+                F: FnOnce() -> R + Send + 'static,
+                R: Send + 'static,
+        {
+            Waiter::done(f())
+        }
+
+        pub fn scope<F, R>(&self, elements: usize, f: F) -> R
+            where
+                F: FnOnce(&DummyScope, usize) -> R,
+        {
+            f(&DummyScope, elements)
+        }
+    }
+
+    pub struct Waiter<T> {
+        val: Option<T>,
+    }
+
+    impl<T> Waiter<T> {
+        /// Wait for the result.
+        pub fn wait(&mut self) -> T {
+            self.val.take().expect("unmet data dependency")
+        }
+
+        /// One-off sending.
+        pub fn done(val: T) -> Self {
+            Waiter { val: Some(val) }
+        }
+    }
+
+    pub struct DummyScope;
+
+    impl DummyScope {
+        pub fn spawn<F: FnOnce(&DummyScope)>(&self, f: F) {
+            f(self);
+        }
+    }
+
+    /// A fake rayon ParallelIterator that is just a serial iterator.
+    pub(crate) trait FakeParallelIterator {
+        type Iter: Iterator<Item = Self::Item>;
+        type Item: Send;
+        fn into_par_iter(self) -> Self::Iter;
+    }
+
+    impl FakeParallelIterator for core::ops::Range<u32> {
+        type Iter = Self;
+        type Item = u32;
+        fn into_par_iter(self) -> Self::Iter {
+            self
+        }
     }
 }
 
-fn log2_floor(num: usize) -> u32 {
-    assert!(num > 0);
-
-    let mut pow = 0;
-
-    while (1 << (pow+1)) <= num {
-        pow += 1;
-    }
-
-    pow
-}
-
-#[test]
-fn test_log2_floor() {
-    assert_eq!(log2_floor(1), 0);
-    assert_eq!(log2_floor(2), 1);
-    assert_eq!(log2_floor(3), 1);
-    assert_eq!(log2_floor(4), 2);
-    assert_eq!(log2_floor(5), 2);
-    assert_eq!(log2_floor(6), 2);
-    assert_eq!(log2_floor(7), 2);
-    assert_eq!(log2_floor(8), 3);
-}
+pub use self::implementation::*;
