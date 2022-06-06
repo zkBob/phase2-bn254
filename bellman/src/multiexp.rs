@@ -474,26 +474,25 @@ fn dense_multiexp_inner<G: CurveAffine>(
     }
 }
 
+#[allow(dead_code)] // it's used inside tests
+fn naive_multiexp<G: CurveAffine>(
+    bases: Arc<Vec<G>>,
+    exponents: Arc<Vec<<G::Scalar as PrimeField>::Repr>>
+) -> G::Projective
+{
+    assert_eq!(bases.len(), exponents.len());
 
+    let mut acc = G::Projective::zero();
+
+    for (base, exp) in bases.iter().zip(exponents.iter()) {
+        acc.add_assign(&base.mul(*exp));
+    }
+
+    acc
+}
 
 #[test]
 fn test_with_bls12() {
-    fn naive_multiexp<G: CurveAffine>(
-        bases: Arc<Vec<G>>,
-        exponents: Arc<Vec<<G::Scalar as PrimeField>::Repr>>
-    ) -> G::Projective
-    {
-        assert_eq!(bases.len(), exponents.len());
-
-        let mut acc = G::Projective::zero();
-
-        for (base, exp) in bases.iter().zip(exponents.iter()) {
-            acc.add_assign(&base.mul(*exp));
-        }
-
-        acc
-    }
-
     use rand::{self, Rand};
     use crate::pairing::bls12_381::Bls12;
 
@@ -616,4 +615,37 @@ fn test_bench_sparse_multiexp() {
 
     let duration_ns = start.elapsed().as_nanos() as f64;
     println!("{} ms for sparse for {} samples", duration_ns/1000.0f64, SAMPLES);
+}
+
+#[test]
+fn test_with_ones() {
+    use rand::{self, Rand};
+    use crate::pairing::bls12_381::Bls12;
+
+    let rng = &mut rand::thread_rng();
+    let v = Arc::new(vec![
+        <Bls12 as ScalarEngine>::Fr::rand(rng).into_repr(),
+        <Bls12 as ScalarEngine>::Fr::rand(rng).into_repr(),
+        <Bls12 as ScalarEngine>::Fr::rand(rng).into_repr(),
+        <Bls12 as ScalarEngine>::Fr::rand(rng).into_repr(),
+        <Bls12 as ScalarEngine>::Fr::rand(rng).into_repr(),
+    ]);
+    let g = Arc::new(vec![
+        <Bls12 as Engine>::G1::one().into_affine(),
+        <Bls12 as Engine>::G1::one().into_affine(),
+        <Bls12 as Engine>::G1::one().into_affine(),
+        <Bls12 as Engine>::G1::one().into_affine(),
+        <Bls12 as Engine>::G1::rand(rng).into_affine(),
+    ]);
+    let naive = naive_multiexp(g.clone(), v.clone());
+
+    let pool = Worker::new();
+    let fast = multiexp(
+        &pool,
+        (g, 0),
+        FullDensity,
+        v
+    ).wait().unwrap();
+
+    assert_eq!(naive, fast);
 }
