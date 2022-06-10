@@ -211,7 +211,7 @@ impl<E:Engine> PreparedProver<E> {
 
         //let stopwatch = Stopwatch::new();
 
-        let h = {
+        let mut h = {
             let mut a = EvaluationDomain::from_coeffs(prover.a)?;
             let mut b = EvaluationDomain::from_coeffs(prover.b)?;
             let mut c = EvaluationDomain::from_coeffs(prover.c)?;
@@ -271,14 +271,14 @@ impl<E:Engine> PreparedProver<E> {
             2*(input_len + aux_len) + aux_len, input_len + aux_len);
 
         // Run a dedicated process for dense vector
-        let l = multiexp(&worker, params.get_l(aux_assignment.len())?, FullDensity, aux_assignment.clone());
+        let mut l = multiexp(&worker, params.get_l(aux_assignment.len())?, FullDensity, aux_assignment.clone());
 
         let a_aux_density_total = prover.a_aux_density.get_total_density();
 
         let (a_inputs_source, a_aux_source) = params.get_a(input_assignment.len(), a_aux_density_total)?;
 
-        let a_inputs = multiexp(&worker, a_inputs_source, FullDensity, input_assignment.clone());
-        let a_aux = multiexp(&worker, a_aux_source, Arc::new(prover.a_aux_density), aux_assignment.clone());
+        let mut a_inputs = multiexp(&worker, a_inputs_source, FullDensity, input_assignment.clone());
+        let mut a_aux = multiexp(&worker, a_aux_source, Arc::new(prover.a_aux_density), aux_assignment.clone());
 
         let b_input_density = Arc::new(prover.b_input_density);
         let b_input_density_total = b_input_density.get_total_density();
@@ -287,13 +287,13 @@ impl<E:Engine> PreparedProver<E> {
 
         let (b_g1_inputs_source, b_g1_aux_source) = params.get_b_g1(b_input_density_total, b_aux_density_total)?;
 
-        let b_g1_inputs = multiexp(&worker, b_g1_inputs_source, b_input_density.clone(), input_assignment.clone());
-        let b_g1_aux = multiexp(&worker, b_g1_aux_source, b_aux_density.clone(), aux_assignment.clone());
+        let mut b_g1_inputs = multiexp(&worker, b_g1_inputs_source, b_input_density.clone(), input_assignment.clone());
+        let mut b_g1_aux = multiexp(&worker, b_g1_aux_source, b_aux_density.clone(), aux_assignment.clone());
 
         let (b_g2_inputs_source, b_g2_aux_source) = params.get_b_g2(b_input_density_total, b_aux_density_total)?;
         
-        let b_g2_inputs = multiexp(&worker, b_g2_inputs_source, b_input_density, input_assignment);
-        let b_g2_aux = multiexp(&worker, b_g2_aux_source, b_aux_density, aux_assignment);
+        let mut b_g2_inputs = multiexp(&worker, b_g2_inputs_source, b_input_density, input_assignment);
+        let mut b_g2_aux = multiexp(&worker, b_g2_aux_source, b_aux_density, aux_assignment);
 
         if vk.delta_g1.is_zero() || vk.delta_g2.is_zero() {
             // If this element is zero, someone is trying to perform a
