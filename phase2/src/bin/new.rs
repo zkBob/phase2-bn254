@@ -101,13 +101,8 @@ fn main() {
     println!("Creating initial parameters for {}...", circuit_name);
     let params =
         MPCParameters::new(bcs, should_filter_points_at_infinity, radix_directory).unwrap();
-    let params = params.get_params().clone();
-    println!("delta g1 = {:?}", params.vk.delta_g1);
-    println!("delta g2 = {:?}", params.vk.delta_g2);
-    let mut result_params = fawkes_crypto::backend::bellman_groth16::setup::setup::<Bn256, _, _, _>(tx_circuit);
-    result_params.0 = params;
 
-    println!("Writing initial parameters to {}.", params_filename);
+    println!("Writing MPC parameters to {}.", params_filename);
     let mut f = File::create(params_filename).unwrap();
-    result_params.write(&mut f).expect("unable to write params");
+    params.write(&mut f).expect("unable to write params");
 }
