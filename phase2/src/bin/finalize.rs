@@ -12,10 +12,10 @@ use libzeropool::{
 };
 use std::fs::File;
 
-use fawkes_crypto::circuit::cs::CS;
 use fawkes_crypto::engines::bn256::Fr;
+use fawkes_crypto::{backend::bellman_groth16::Parameters, circuit::cs::CS};
 use fawkes_crypto::{
-    backend::bellman_groth16::engines::Bn256,
+    backend::bellman_groth16::{engines::Bn256, setup::setup},
     circuit::cs::BuildCS,
     core::signal::Signal,
 };
@@ -23,6 +23,10 @@ use fawkes_crypto_phase2::parameters::MPCParameters;
 
 fn tx_circuit<C: CS<Fr = Fr>>(public: CTransferPub<C>, secret: CTransferSec<C>) {
     c_transfer(&public, &secret, &*POOL_PARAMS);
+}
+
+fn tree_update_circuit<C: CS<Fr = Fr>>(public: CTreePub<C>, secret: CTreeSec<C>) {
+    tree_update(&public, &secret, &*POOL_PARAMS);
 }
 
 fn main() {
@@ -37,13 +41,14 @@ fn main() {
 
     let ref rcs = BuildCS::rc_new();
 
-    match circuit_name.as_str() {
+    let mut result_params: Parameters<Bn256> = match circuit_name.as_str() {
         "tree_update" => {
             let signal_pub = CTreePub::alloc(rcs, None);
             signal_pub.inputize();
             let signal_sec = CTreeSec::alloc(rcs, None);
 
-            tree_update(&signal_pub, &signal_sec, &*POOL_PARAMS);
+            tree_update_circuit(signal_pub, signal_sec);
+            setup(tree_update_circuit)
         }
         "transfer" => {
             let signal_pub = CTransferPub::alloc(rcs, None);
@@ -51,13 +56,17 @@ fn main() {
             let signal_sec = CTransferSec::alloc(rcs, None);
 
             tx_circuit(signal_pub, signal_sec);
+            setup(tx_circuit)
         }
         _ => panic!("Wrong cicruit parameter"),
     };
 
     let should_filter_points_at_infinity = true;
 
-    println!("Creating fawkes compatible parameters for {}...", circuit_name);    
+    println!(
+        "Creating fawkes compatible parameters for {}...",
+        circuit_name
+    );
 
     let mpc_params: MPCParameters = MPCParameters::read(
         std::fs::File::open(mpc_params_filename).unwrap(),
@@ -67,8 +76,6 @@ fn main() {
     .unwrap();
     let params = mpc_params.get_params().clone();
 
-    let mut result_params =
-        fawkes_crypto::backend::bellman_groth16::setup::setup::<Bn256, _, _, _>(tx_circuit);
     result_params.0 = params;
 
     println!("Writing initial parameters to {}.", params_filename);
