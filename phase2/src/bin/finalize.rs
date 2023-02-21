@@ -1,25 +1,23 @@
-extern crate bellman_ce;
 extern crate exitcode;
-extern crate fawkes_crypto;
 extern crate fawkes_crypto_phase2;
 extern crate libzeropool;
 extern crate rand;
 
+use fawkes_crypto_phase2::parameters::MPCParameters;
 use libzeropool::{
     circuit::tree::{tree_update, CTreePub, CTreeSec},
     circuit::tx::{c_transfer, CTransferPub, CTransferSec},
     POOL_PARAMS,
+    fawkes_crypto::{
+        backend::bellman_groth16::{engines::Bn256, setup::setup},
+        circuit::cs::BuildCS,
+        core::signal::Signal,
+        backend::bellman_groth16::Parameters,
+        circuit::cs::CS,
+        engines::bn256::Fr
+    }
 };
 use std::fs::File;
-
-use fawkes_crypto::engines::bn256::Fr;
-use fawkes_crypto::{backend::bellman_groth16::Parameters, circuit::cs::CS};
-use fawkes_crypto::{
-    backend::bellman_groth16::{engines::Bn256, setup::setup},
-    circuit::cs::BuildCS,
-    core::signal::Signal,
-};
-use fawkes_crypto_phase2::parameters::MPCParameters;
 
 fn tx_circuit<C: CS<Fr = Fr>>(public: CTransferPub<C>, secret: CTransferSec<C>) {
     c_transfer(&public, &secret, &*POOL_PARAMS);
