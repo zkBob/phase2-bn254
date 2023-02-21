@@ -301,11 +301,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69323bff1fb41c635347b8ead484a5ca6c3f11914d784170b158d8449ab07f8e"
 dependencies = [
  "cfg-if 0.1.10",
- "crossbeam-channel",
- "crossbeam-deque",
- "crossbeam-epoch",
+ "crossbeam-channel 0.4.4",
+ "crossbeam-deque 0.7.4",
+ "crossbeam-epoch 0.8.2",
  "crossbeam-queue",
- "crossbeam-utils",
+ "crossbeam-utils 0.7.2",
 ]
 
 [[package]]
@@ -314,8 +314,18 @@ version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b153fe7cbef478c567df0f972e02e6d736db11affe43dfc9c56a9374d1adfb87"
 dependencies = [
- "crossbeam-utils",
+ "crossbeam-utils 0.7.2",
  "maybe-uninit",
+]
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c2dd04ddaf88237dc3b8d8f9a3c1004b506b54b3313403944054d23c0870c521"
+dependencies = [
+ "cfg-if 1.0.0",
+ "crossbeam-utils 0.8.14",
 ]
 
 [[package]]
@@ -324,9 +334,20 @@ version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c20ff29ded3204c5106278a81a38f4b482636ed4fa1e6cfbeef193291beb29ed"
 dependencies = [
- "crossbeam-epoch",
- "crossbeam-utils",
+ "crossbeam-epoch 0.8.2",
+ "crossbeam-utils 0.7.2",
  "maybe-uninit",
+]
+
+[[package]]
+name = "crossbeam-deque"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "715e8152b692bba2d374b53d4875445368fdf21a94751410af607a5ac677d1fc"
+dependencies = [
+ "cfg-if 1.0.0",
+ "crossbeam-epoch 0.9.13",
+ "crossbeam-utils 0.8.14",
 ]
 
 [[package]]
@@ -337,10 +358,23 @@ checksum = "058ed274caafc1f60c4997b5fc07bf7dc7cca454af7c6e81edffe5f33f70dace"
 dependencies = [
  "autocfg",
  "cfg-if 0.1.10",
- "crossbeam-utils",
+ "crossbeam-utils 0.7.2",
  "lazy_static",
  "maybe-uninit",
- "memoffset",
+ "memoffset 0.5.6",
+ "scopeguard",
+]
+
+[[package]]
+name = "crossbeam-epoch"
+version = "0.9.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "01a9af1f4c2ef74bb8aa1f7e19706bc72d03598c8a570bb5de72243c7a9d9d5a"
+dependencies = [
+ "autocfg",
+ "cfg-if 1.0.0",
+ "crossbeam-utils 0.8.14",
+ "memoffset 0.7.1",
  "scopeguard",
 ]
 
@@ -351,7 +385,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "774ba60a54c213d409d5353bda12d49cd68d14e45036a285234c8d6f91f92570"
 dependencies = [
  "cfg-if 0.1.10",
- "crossbeam-utils",
+ "crossbeam-utils 0.7.2",
  "maybe-uninit",
 ]
 
@@ -364,6 +398,15 @@ dependencies = [
  "autocfg",
  "cfg-if 0.1.10",
  "lazy_static",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.8.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb766fa798726286dbbb842f174001dab8abc7b627a1dd86e0b7222a95d929f"
+dependencies = [
+ "cfg-if 1.0.0",
 ]
 
 [[package]]
@@ -414,24 +457,6 @@ checksum = "de853764b47027c2e862a995c34978ffa63c1501f2e15f987ba11bd4f9bba193"
 
 [[package]]
 name = "fawkes-crypto-bellman_ce"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4113289418eaef77657736cd9bc81665fb4a189f914a2ca32880e267bd378e67"
-dependencies = [
- "bit-vec",
- "byteorder",
- "cfg-if 0.1.10",
- "crossbeam",
- "fawkes-crypto-pairing_ce 0.18.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "futures",
- "futures-cpupool",
- "num_cpus",
- "rand 0.4.6",
- "web-sys",
-]
-
-[[package]]
-name = "fawkes-crypto-bellman_ce"
 version = "0.3.5"
 dependencies = [
  "bit-vec",
@@ -457,24 +482,19 @@ dependencies = [
  "bit-vec",
  "byteorder",
  "cfg-if 0.1.10",
+ "crossbeam-channel 0.5.6",
  "fawkes-crypto-pairing_ce 0.18.1 (git+https://github.com/zkBob/phase2-bn254?branch=multicore-wasm)",
+ "lazy_static",
+ "log",
+ "num_cpus",
  "rand 0.4.6",
+ "rayon",
+ "web-sys",
 ]
 
 [[package]]
 name = "fawkes-crypto-pairing_ce"
 version = "0.18.1"
-dependencies = [
- "byteorder",
- "ff_ce",
- "rand 0.4.6",
-]
-
-[[package]]
-name = "fawkes-crypto-pairing_ce"
-version = "0.18.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6949d6a13fbd939f9dbb1b8c2113f75de69f46f2500ddaa3f23405fa04ce23df"
 dependencies = [
  "byteorder",
  "ff_ce",
@@ -502,7 +522,7 @@ dependencies = [
  "console_error_panic_hook",
  "crossbeam",
  "exitcode",
- "fawkes-crypto-bellman_ce 0.3.4",
+ "fawkes-crypto-bellman_ce 0.3.5 (git+https://github.com/zkBob/phase2-bn254?branch=multicore-wasm)",
  "hex 0.4.3",
  "itertools 0.9.0",
  "js-sys",
@@ -905,6 +925,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "memoffset"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5de893c32cde5f383baa4c04c5d6dbdd735cfd4a794b0debdb2bb1b421da5ff4"
+dependencies = [
+ "autocfg",
+]
+
+[[package]]
 name = "nodrop"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1146,6 +1175,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca3129af7b92a17112d59ad498c6f81eaf463253766b90396d39ea7a39d6613c"
 dependencies = [
  "rand_core 0.5.1",
+]
+
+[[package]]
+name = "rayon"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6db3a213adf02b3bcfd2d3846bb41cb22857d131789e01df434fb7e7bc0759b7"
+dependencies = [
+ "either",
+ "rayon-core",
+]
+
+[[package]]
+name = "rayon-core"
+version = "1.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "356a0625f1954f730c0201cdab48611198dc6ce21f4acff55089b5a78e6e835b"
+dependencies = [
+ "crossbeam-channel 0.5.6",
+ "crossbeam-deque 0.8.2",
+ "crossbeam-utils 0.8.14",
+ "num_cpus",
 ]
 
 [[package]]
