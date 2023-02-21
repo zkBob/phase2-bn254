@@ -24,7 +24,7 @@ num-traits = "0.2.8"
 itertools = "0.9.0"
 hex = "0.4.0"
 cfg-if = "0.1.10"
-bellman_ce = { package = "fawkes-crypto-bellman_ce", version="=0.3.4", default-features = false }
+# bellman_ce = { package = "fawkes-crypto-bellman_ce", version="=0.3.4", default-features = false }
 # fawkes-crypto = "4.3.2"
 # libzeropool = "0.5.5"
 
@@ -46,6 +46,12 @@ package = "libzeropool-zkbob"
 version = "1.1.0"
 default-features = false
 features = ["in3out127"]
+[dependencies.bellman_ce]
+version = "0.3.4"
+package = "fawkes-crypto-bellman_ce"
+git = "https://github.com/zkBob/phase2-bn254"
+branch = "multicore-wasm"
+optional = true
 [features]
 default = ["bellman_ce/multicore", "rust-crypto"]
 wasm = ["wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook", "bellman_ce/wasm"]
