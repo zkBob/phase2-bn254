@@ -2,10 +2,10 @@ extern crate bellman_ce;
 extern crate exitcode;
 extern crate fawkes_crypto;
 extern crate fawkes_crypto_phase2;
-extern crate libzeropool;
+extern crate libzeropool_zkbob;
 extern crate rand;
 
-use libzeropool::{
+use libzeropool_zkbob::{
     circuit::tree::{tree_update, CTreePub, CTreeSec},
     circuit::tx::{c_transfer, CTransferPub, CTransferSec},
     POOL_PARAMS,

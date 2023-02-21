@@ -1,7 +1,7 @@
 extern crate exitcode;
 extern crate fawkes_crypto;
 extern crate fawkes_crypto_phase2;
-extern crate libzeropool;
+extern crate libzeropool_zkbob;
 extern crate rand;
 
 use std::fs::File;
