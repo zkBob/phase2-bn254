@@ -6,7 +6,7 @@ extern crate rand;
 
 use libzeropool::{
     circuit::tree::{tree_update, CTreePub, CTreeSec},
-    circuit::tx::{c_transfer, CTransferPub, CTransferSec},
+    circuit::{tx::{c_transfer, CTransferPub, CTransferSec}, delegated_deposit::{CDelegatedDepositBatchPub, CDelegatedDepositBatchSec, check_delegated_deposit_batch}},
     POOL_PARAMS,
     fawkes_crypto::{
         engines::bn256::Fr,
@@ -39,6 +39,9 @@ use fawkes_crypto_phase2::parameters::MPCParameters;
 
 fn tx_circuit<C:CS<Fr=Fr>>(public: CTransferPub<C>, secret: CTransferSec<C>) {
     c_transfer(&public, &secret, &*POOL_PARAMS);
+}
+fn delegated_deposit<C:CS<Fr=Fr>>(public: CDelegatedDepositBatchPub<C>, secret: CDelegatedDepositBatchSec<C>) {
+    check_delegated_deposit_batch(&public, &secret, &*POOL_PARAMS);
 }
 
 /*
@@ -100,6 +103,13 @@ fn main() {
             let signal_sec = CTransferSec::alloc(rcs, None);
 
             tx_circuit(signal_pub, signal_sec);
+        }
+        "delegated_deposit" => {
+            let signal_pub = CDelegatedDepositBatchPub::alloc(rcs, None);
+            signal_pub.inputize();
+            let signal_sec = CDelegatedDepositBatchSec::alloc(rcs, None);
+
+            delegated_deposit(signal_pub, signal_sec);
         }
         _ => panic!("Wrong cicruit parameter"),
     };
