@@ -486,6 +486,10 @@ impl CurveAffine for Fr {
         *self
     }
 
+    fn get_x(&self) -> Self::Base {
+        unimplemented!()
+    }
+
     fn batch_addition_assign(a: &mut [Self], b: &[Self]) {
         for i in 0..a.len() {
             let mut c = a[i].into_projective();

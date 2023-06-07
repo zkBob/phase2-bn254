@@ -203,6 +203,10 @@ macro_rules! curve_impl {
                 (*self).into()
             }
 
+            fn get_x(&self) -> Self::Base {
+                self.x
+            }
+
             fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self]) {
                 let zero = Self::Base::zero();
                 let num_points = lhs.len();

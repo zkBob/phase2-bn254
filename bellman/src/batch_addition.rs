@@ -44,10 +44,10 @@ impl<G: CurveAffine> BucketAdder<G> {
             return;
         }
 
-        // batch addtition doesn't work with equal points
+        // batch addtition doesn't work if P = +-Q
         // so we need to perform this addition in place
-        // even though it is very slow because of into_affine
-        if self.buckets[bucket] == base {
+        // even though it is slow because of into_affine
+        if self.buckets[bucket].get_x() == base.get_x() {
             let mut p = self.buckets[bucket].into_projective();
             p.add_assign_mixed(&base);
             self.buckets[bucket] = p.into_affine();

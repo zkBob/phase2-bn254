@@ -235,6 +235,8 @@ pub trait CurveAffine:
     // Performs batch affine addition and writes result in lhs
     // For all i: lhs[i] and rhs[i] strictly assumed to be not equal and not equal to zero
     fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self]);
+
+    fn get_x(&self) -> Self::Base;
 }
 
 pub trait RawEncodable: CurveAffine {
