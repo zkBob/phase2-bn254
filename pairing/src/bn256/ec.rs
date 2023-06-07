@@ -203,7 +203,7 @@ macro_rules! curve_impl {
                 (*self).into()
             }
 
-            fn batch_addition(lhs: &[Self], rhs: &mut [Self]) {
+            fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self]) {
                 let zero = Self::Base::zero();
                 let num_points = lhs.len();
                 let mut scratch_space = vec![zero; num_points];
@@ -211,37 +211,37 @@ macro_rules! curve_impl {
                 let mut batch_inversion_accumulator = Self::Base::one();
                 for i in 0..num_points {
                     // x2 + x1
-                    scratch_space[i] = lhs[i].x;  
-                    scratch_space[i].add_assign(&rhs[i].x);
+                    scratch_space[i] = rhs[i].x;  
+                    scratch_space[i].add_assign(&lhs[i].x);
 
                     // x2 - x1
-                    rhs[i].x.sub_assign(&lhs[i].x);
+                    lhs[i].x.sub_assign(&rhs[i].x);
 
                     // y2 - y1
-                    rhs[i].y.sub_assign(&lhs[i].y);
+                    lhs[i].y.sub_assign(&rhs[i].y);
 
                     // (y2 - y1)*accumulator_old
-                    rhs[i].y.mul_assign(&batch_inversion_accumulator);
+                    lhs[i].y.mul_assign(&batch_inversion_accumulator);
 
-                    batch_inversion_accumulator.mul_assign(&rhs[i].x)
+                    batch_inversion_accumulator.mul_assign(&lhs[i].x)
                 }
                 batch_inversion_accumulator = batch_inversion_accumulator.inverse().unwrap();
 
                 for i in (0..num_points).rev() {
-                    rhs[i].y.mul_assign(&batch_inversion_accumulator); // update accumulator
-                    batch_inversion_accumulator.mul_assign(&rhs[i].x);
+                    lhs[i].y.mul_assign(&batch_inversion_accumulator); // update accumulator
+                    batch_inversion_accumulator.mul_assign(&lhs[i].x);
                     
                     // x3 = lambda_squared - x2 - x1
-                    rhs[i].x = rhs[i].y;
-                    rhs[i].x.square();
-                    rhs[i].x.sub_assign(&scratch_space[i]); 
+                    lhs[i].x = lhs[i].y;
+                    lhs[i].x.square();
+                    lhs[i].x.sub_assign(&scratch_space[i]); 
 
-                    scratch_space[i] = lhs[i].x;
-                    scratch_space[i].sub_assign(&rhs[i].x);
-                    scratch_space[i].mul_assign(&rhs[i].y);
+                    scratch_space[i] = rhs[i].x;
+                    scratch_space[i].sub_assign(&lhs[i].x);
+                    scratch_space[i].mul_assign(&lhs[i].y);
 
-                    rhs[i].y = scratch_space[i];
-                    rhs[i].y.sub_assign(&lhs[i].y);
+                    lhs[i].y = scratch_space[i];
+                    lhs[i].y.sub_assign(&rhs[i].y);
                 }
             }
         }

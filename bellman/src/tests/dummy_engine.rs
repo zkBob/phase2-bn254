@@ -486,11 +486,11 @@ impl CurveAffine for Fr {
         *self
     }
 
-    fn batch_addition(a: &[Self], b: &mut [Self]) {
+    fn batch_addition_assign(a: &mut [Self], b: &[Self]) {
         for i in 0..a.len() {
             let mut c = a[i].into_projective();
             c.add_assign_mixed(&b[i]);
-            b[i] = c;
+            a[i] = c;
         }
     }
 }

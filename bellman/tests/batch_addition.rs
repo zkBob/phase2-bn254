@@ -18,19 +18,19 @@ fn test_batch_addition_bn256() {
     const SAMPLES: usize = 1 << 8;
 
     let rng = &mut rand::thread_rng();
-    let a = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
-    let mut b = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
+    let mut a = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
+    let b = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
 
     let n = Instant::now();
     let naive = naive(a.clone(), b.clone());
     println!("Naive: {}", n.elapsed().as_nanos());
 
     let ba = Instant::now();
-    CurveAffine::batch_addition(&a, &mut b);
+    CurveAffine::batch_addition_assign(&mut a, &b);
     println!("Batch: {}", ba.elapsed().as_nanos());
     
     let naive: Vec<_> = naive.into_iter().map(|p| p.into_affine()).collect();
-    assert!(naive == b);
+    assert!(naive == a);
 }
 
 #[test]
@@ -38,17 +38,17 @@ fn test_batch_addition_bls12() {
     const SAMPLES: usize = 1 << 8;
 
     let rng = &mut rand::thread_rng();
-    let a = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
-    let mut b = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
+    let mut a = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
+    let b = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
 
     let n = Instant::now();
     let naive = naive(a.clone(), b.clone());
     println!("Naive: {}", n.elapsed().as_nanos());
 
     let ba = Instant::now();
-    CurveAffine::batch_addition(&a, &mut b);
+    CurveAffine::batch_addition_assign(&mut a, &b);
     println!("Batch: {}", ba.elapsed().as_nanos());
     
     let naive: Vec<_> = naive.into_iter().map(|p| p.into_affine()).collect();
-    assert!(naive == b);
+    assert!(naive == a);
 }
