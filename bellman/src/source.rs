@@ -31,6 +31,8 @@ pub trait Source<G: CurveAffine> {
 
     /// Skips `amt` elements from the source, avoiding deserialization.
     fn skip(&mut self, amt: usize) -> Result<(), SynthesisError>;
+
+    fn next(&mut self) -> Option<G>;
 }
 
 impl<G: CurveAffine> SourceBuilder<G> for (Arc<Vec<G>>, usize) {
@@ -66,6 +68,12 @@ impl<G: CurveAffine> Source<G> for (Arc<Vec<G>>, usize) {
         self.1 += amt;
 
         Ok(())
+    }
+
+    fn next(&mut self) -> Option<G> {
+        let b = self.0.get(self.1)?;
+        self.1 += 1;
+        Some(*b)
     }
 }
 

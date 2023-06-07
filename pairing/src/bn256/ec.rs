@@ -202,6 +202,66 @@ macro_rules! curve_impl {
             fn into_projective(&self) -> $projective {
                 (*self).into()
             }
+
+            fn batch_addition(a: &[Self], b: &[Self]) -> Vec<Self> {
+                let n = a.len();
+                let zero = Self::Base::zero();
+
+                let mut lambdas = vec![zero; n];
+                let mut denom = Self::Base::one();
+                let mut ls = vec![zero; n];
+                for i in 0..n {
+                    let a = a[i];
+                    let b = b[i];
+                    // lambda = b.x - a.x
+                    let mut lambda = b.x;
+                    lambda.sub_assign(&a.x);
+
+                    lambdas[i] = lambda;
+                    ls[i] = denom;
+                    denom.mul_assign(&lambda);
+                }
+                denom = denom.inverse().unwrap();
+                
+                let mut rs = vec![zero; n];
+                let mut r = denom;
+                for i in 0..n {
+                    rs[n - 1 - i] = r;
+                    r.mul_assign(&lambdas[n - 1 - i]);
+                }
+
+                let mut result = vec![Self::zero(); n];
+                for i in 0..n {
+                    let a = a[i];
+                    let b = b[i];
+                    
+                    // l[i] * r[i] * denom
+                    let mut d = rs[i];
+                    d.mul_assign(&ls[i]);
+                    //d.mul_assign(&rs[i]);
+
+                    // (b.y - a.y) * d
+                    let mut k = b.y;
+                    k.sub_assign(&a.y);
+                    k.mul_assign(&d);
+
+                    // k^2 - a.x - b.x
+                    let mut x = k;
+                    x.mul_assign(&k);
+                    x.sub_assign(&a.x);
+                    x.sub_assign(&b.x);
+
+                    // k*(a.x - x) - a.y
+                    let mut y = a.x;
+                    y.sub_assign(&x);
+                    y.mul_assign(&k);
+                    y.sub_assign(&a.y);
+
+                    result[i] = Self {x, y, infinity: false};
+                }
+
+                result
+            }
         }
         // impl Rand for $projective {
         //     fn rand<R: Rng>(rng: &mut R) -> Self {

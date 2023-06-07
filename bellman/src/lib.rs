@@ -22,6 +22,7 @@ pub mod sonic;
 mod group;
 mod source;
 mod multiexp;
+mod batch_addition;
 
 #[cfg(test)]
 mod tests;
