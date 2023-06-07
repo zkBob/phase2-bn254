@@ -78,10 +78,10 @@ impl<G: CurveAffine> BucketAdder<G> {
     }
     
     fn process_buffer(&mut self) {
-        let c = CurveAffine::batch_addition(&self.a[0..self.count], &self.b[0..self.count]);
+        CurveAffine::batch_addition(&self.a[0..self.count], &mut self.b[0..self.count]);
 
         for i in 0..self.count {
-            self.buckets[self.indexes[i]] = c[i];
+            self.buckets[self.indexes[i]] = self.b[i];
         }
 
         self.count = 0;

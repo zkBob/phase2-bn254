@@ -232,7 +232,7 @@ pub trait CurveAffine:
         <Self::Uncompressed as EncodedPoint>::from_affine(*self)
     }
 
-    fn batch_addition(a: &[Self], b: &[Self]) -> Vec<Self>;
+    fn batch_addition(lhs: &[Self], rhs: &mut [Self]);
 }
 
 pub trait RawEncodable: CurveAffine {

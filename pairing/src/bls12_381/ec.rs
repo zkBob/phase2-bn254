@@ -194,64 +194,46 @@ macro_rules! curve_impl {
                 (*self).into()
             }
 
-            fn batch_addition(a: &[Self], b: &[Self]) -> Vec<Self> {
-                let n = a.len();
+            fn batch_addition(lhs: &[Self], rhs: &mut [Self]) {
                 let zero = Self::Base::zero();
+                let num_points = lhs.len();
+                let mut scratch_space = vec![zero; num_points];
 
-                let mut lambdas = vec![zero; n];
-                let mut denom = Self::Base::one();
-                let mut ls = vec![zero; n];
-                for i in 0..n {
-                    let a = a[i];
-                    let b = b[i];
-                    // lambda = b.x - a.x
-                    let mut lambda = b.x;
-                    lambda.sub_assign(&a.x);
+                let mut batch_inversion_accumulator = Self::Base::one();
+                for i in 0..num_points {
+                    // x2 + x1
+                    scratch_space[i] = lhs[i].x;  
+                    scratch_space[i].add_assign(&rhs[i].x);
 
-                    lambdas[i] = lambda;
-                    ls[i] = denom;
-                    denom.mul_assign(&lambda);
+                    // x2 - x1
+                    rhs[i].x.sub_assign(&lhs[i].x);
+
+                    // y2 - y1
+                    rhs[i].y.sub_assign(&lhs[i].y);
+
+                    // (y2 - y1)*accumulator_old
+                    rhs[i].y.mul_assign(&batch_inversion_accumulator);
+
+                    batch_inversion_accumulator.mul_assign(&rhs[i].x)
                 }
-                denom = denom.inverse().unwrap();
-                
-                let mut rs = vec![zero; n];
-                let mut r = denom;
-                for i in 0..n {
-                    rs[n - 1 - i] = r;
-                    r.mul_assign(&lambdas[n - 1 - i]);
-                }
+                batch_inversion_accumulator = batch_inversion_accumulator.inverse().unwrap();
 
-                let mut result = vec![Self::zero(); n];
-                for i in 0..n {
-                    let a = a[i];
-                    let b = b[i];
+                for i in (0..num_points).rev() {
+                    rhs[i].y.mul_assign(&batch_inversion_accumulator); // update accumulator
+                    batch_inversion_accumulator.mul_assign(&rhs[i].x);
                     
-                    // l[i] * r[i] * denom
-                    let mut d = rs[i];
-                    d.mul_assign(&ls[i]);
-                    //d.mul_assign(&rs[i]);
+                    // x3 = lambda_squared - x2 - x1
+                    rhs[i].x = rhs[i].y;
+                    rhs[i].x.square();
+                    rhs[i].x.sub_assign(&scratch_space[i]); 
 
-                    // (b.y - a.y) * d
-                    let mut k = b.y;
-                    k.sub_assign(&a.y);
-                    k.mul_assign(&d);
+                    scratch_space[i] = lhs[i].x;
+                    scratch_space[i].sub_assign(&rhs[i].x);
+                    scratch_space[i].mul_assign(&rhs[i].y);
 
-                    // k^2 - a.x - b.x
-                    let mut x = k;
-                    x.mul_assign(&k);
-                    x.sub_assign(&a.x);
-                    x.sub_assign(&b.x);
-
-                    // k*(a.x - x) - a.y
-                    let mut y = a.x;
-                    y.sub_assign(&x);
-                    y.mul_assign(&k);
-                    y.sub_assign(&a.y);
-
-                    result[i] = Self {x, y, infinity: false};
+                    rhs[i].y = scratch_space[i];
+                    rhs[i].y.sub_assign(&lhs[i].y);
                 }
-
-                result
             }
         }
 
