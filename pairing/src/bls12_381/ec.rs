@@ -198,10 +198,8 @@ macro_rules! curve_impl {
                 self.x
             }
 
-            fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self]) {
-                let zero = Self::Base::zero();
+            fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self], scratch_space: &mut [Self::Base]) {
                 let num_points = lhs.len();
-                let mut scratch_space = vec![zero; num_points];
 
                 let mut batch_inversion_accumulator = Self::Base::one();
                 for i in 0..num_points {

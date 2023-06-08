@@ -9,6 +9,7 @@ pub struct BucketAdder<G: CurveAffine> {
     
     batch_lhs: Vec<G>,
     batch_rhs: Vec<G>,
+    scratch_space: Vec<G::Base>,
     batch_indexes: Vec<usize>,
     batch_count: usize,
     buckets_in_batch: HashSet<usize>,
@@ -24,6 +25,7 @@ impl<G: CurveAffine> BucketAdder<G> {
             buckets: vec![zero; (1 << c) - 1], 
             batch_lhs: vec![zero; batch_size], 
             batch_rhs: vec![zero; batch_size], 
+            scratch_space: vec![zero.get_x(); batch_size],
             batch_indexes: vec![0; batch_size],
             batch_count: 0,
             buckets_in_batch: HashSet::new(),
@@ -81,7 +83,7 @@ impl<G: CurveAffine> BucketAdder<G> {
     }
     
     fn process_batch(&mut self) {
-        CurveAffine::batch_addition_assign(&mut self.batch_lhs[0..self.batch_count], &self.batch_rhs[0..self.batch_count]);
+        CurveAffine::batch_addition_assign(&mut self.batch_lhs[0..self.batch_count], &self.batch_rhs[0..self.batch_count], &mut self.scratch_space);
 
         for i in 0..self.batch_count {
             self.buckets[self.batch_indexes[i]] = self.batch_lhs[i];

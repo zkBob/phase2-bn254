@@ -234,8 +234,10 @@ pub trait CurveAffine:
 
     // Performs batch affine addition and writes result in lhs
     // For all i: lhs[i] and rhs[i] strictly assumed to be not equal and not equal to zero
-    fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self]);
+    // scratch_space is a preallocated buffer with size equal to size of lhs and rhs
+    fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self], scratch_space: &mut [Self::Base]);
 
+    // Returns x coordinate of affine point
     fn get_x(&self) -> Self::Base;
 }
 
