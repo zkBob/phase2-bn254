@@ -240,17 +240,23 @@ fn test_speed_with_bn256() {
 
     println!("Started");
     
-    let start = std::time::Instant::now();
+    let mut results = vec![];
+    let iter_count = 100;
+    for _ in 0..iter_count {
+        let g = g.clone();
+        let v = v.clone();
+        let start = std::time::Instant::now();
+        let _fast = multiexp(
+            &pool,
+            (g, 0),
+            FullDensity,
+            v
+        ).wait().unwrap();
+        let duration_ns = start.elapsed().as_nanos() as f64;
+        results.push(duration_ns);
+    }
 
-    let _fast = multiexp(
-        &pool,
-        (g, 0),
-        FullDensity,
-        v
-    ).wait().unwrap();
-
-
-    let duration_ns = start.elapsed().as_nanos() as f64;
+    let duration_ns: f64 = results.into_iter().sum::<f64>() / iter_count as f64;
     println!("Elapsed {} ns for {} samples", duration_ns, SAMPLES);
     let time_per_sample = duration_ns/(SAMPLES as f64);
     println!("Tested on {} samples on {} CPUs with {} ns per multiplication", SAMPLES, cpus, time_per_sample);
