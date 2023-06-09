@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use pairing::{bn256::{Fq, Bn256}, CurveAffine, ff::Field, Engine, CurveProjective, bls12_381::Bls12};
+use pairing::{bn256::{Bn256}, CurveAffine, Engine, CurveProjective, bls12_381::Bls12};
 use rand::{self, Rand};
 
 fn naive<G: CurveAffine>(a: Vec<G>, b: Vec<G>) -> Vec<G::Projective> {
@@ -39,8 +39,8 @@ fn test_batch_addition_bls12() {
     const SAMPLES: usize = 1 << 8;
 
     let rng = &mut rand::thread_rng();
-    let mut a = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
-    let b = (0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
+    let mut a = (0..SAMPLES).map(|_| <Bls12 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
+    let b = (0..SAMPLES).map(|_| <Bls12 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>();
     let mut scratch_space = vec![a[0].get_x(); SAMPLES];
 
     let n = Instant::now();

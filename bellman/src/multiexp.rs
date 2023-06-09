@@ -81,7 +81,7 @@ fn multiexp_inner<Q, D, G, S>(
                     let exp = exp.as_ref()[0] % (1 << c);
 
                     if exp != 0 {
-                        buckets.add_to_bucket(bases.next().unwrap(), (exp - 1) as usize);
+                        buckets.add_to_bucket(bases.next()?, (exp - 1) as usize);
                     } else {
                         bases.skip(1)?;
                     }
