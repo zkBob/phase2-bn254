@@ -84,7 +84,7 @@ impl<G: CurveAffine> BucketAdder<G> {
     }
     
     fn process_batch(&mut self) {
-        CurveAffine::batch_addition_assign(&mut self.batch_lhs[0..self.batch_count], &self.batch_rhs[0..self.batch_count], &mut self.scratch_space);
+        CurveAffine::batch_add_assign(&mut self.batch_lhs[0..self.batch_count], &self.batch_rhs[0..self.batch_count], &mut self.scratch_space);
 
         for i in 0..self.batch_count {
             let bucket = self.batch_buckets[i];

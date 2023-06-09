@@ -27,7 +27,7 @@ fn test_batch_addition_bn256() {
     println!("Naive: {}", n.elapsed().as_nanos());
 
     let ba = Instant::now();
-    CurveAffine::batch_addition_assign(&mut a, &b, &mut scratch_space);
+    CurveAffine::batch_add_assign(&mut a, &b, &mut scratch_space);
     println!("Batch: {}", ba.elapsed().as_nanos());
     
     let naive: Vec<_> = naive.into_iter().map(|p| p.into_affine()).collect();
@@ -48,7 +48,7 @@ fn test_batch_addition_bls12() {
     println!("Naive: {}", n.elapsed().as_nanos());
 
     let ba = Instant::now();
-    CurveAffine::batch_addition_assign(&mut a, &b, &mut scratch_space);
+    CurveAffine::batch_add_assign(&mut a, &b, &mut scratch_space);
     println!("Batch: {}", ba.elapsed().as_nanos());
     
     let naive: Vec<_> = naive.into_iter().map(|p| p.into_affine()).collect();

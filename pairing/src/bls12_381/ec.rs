@@ -198,22 +198,22 @@ macro_rules! curve_impl {
                 self.x
             }
 
-            fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self], scratch_space: &mut [Self::Base]) {
+            fn batch_add_assign(lhs: &mut [Self], rhs: &[Self], scratch_space: &mut [Self::Base]) {
                 let num_points = lhs.len();
 
                 let mut batch_inversion_accumulator = Self::Base::one();
                 for i in 0..num_points {
-                    // x2 + x1
+                    // r.x + l.x
                     scratch_space[i] = rhs[i].x;  
                     scratch_space[i].add_assign(&lhs[i].x);
 
-                    // x2 - x1
+                    // l.x - r.x = lambda_i
                     lhs[i].x.sub_assign(&rhs[i].x);
 
-                    // y2 - y1
+                    // l.y - r.y
                     lhs[i].y.sub_assign(&rhs[i].y);
 
-                    // (y2 - y1)*accumulator_old
+                    // (l.y - r.y) * Li
                     lhs[i].y.mul_assign(&batch_inversion_accumulator);
 
                     batch_inversion_accumulator.mul_assign(&lhs[i].x)
@@ -221,18 +221,22 @@ macro_rules! curve_impl {
                 batch_inversion_accumulator = batch_inversion_accumulator.inverse().unwrap();
 
                 for i in (0..num_points).rev() {
-                    lhs[i].y.mul_assign(&batch_inversion_accumulator); // update accumulator
+                    // k = (l.y - r.y) * Li * (lambda_inv * Ri)
+                    lhs[i].y.mul_assign(&batch_inversion_accumulator);
+                    // (lambda_inv * Ri)
                     batch_inversion_accumulator.mul_assign(&lhs[i].x);
                     
-                    // x3 = lambda_squared - x2 - x1
+                    // x = k^2 - l.x - r.x
                     lhs[i].x = lhs[i].y;
                     lhs[i].x.square();
                     lhs[i].x.sub_assign(&scratch_space[i]); 
 
+                    // (r.x - x) * k
                     scratch_space[i] = rhs[i].x;
                     scratch_space[i].sub_assign(&lhs[i].x);
                     scratch_space[i].mul_assign(&lhs[i].y);
 
+                    // y = (r.x - x) * k - r.y
                     lhs[i].y = scratch_space[i];
                     lhs[i].y.sub_assign(&rhs[i].y);
                 }

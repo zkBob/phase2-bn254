@@ -232,12 +232,12 @@ pub trait CurveAffine:
         <Self::Uncompressed as EncodedPoint>::from_affine(*self)
     }
 
-    // Performs batch affine addition and writes result in lhs
-    // For all i: lhs[i] and rhs[i] strictly assumed to be not equal and not equal to zero
-    // scratch_space is a preallocated buffer with size equal to size of lhs and rhs
-    fn batch_addition_assign(lhs: &mut [Self], rhs: &[Self], scratch_space: &mut [Self::Base]);
+    /// Performs batch affine addition and writes result in lhs. 
+    /// For all i: lhs[[i]] and rhs[[i]] strictly assumed to be not equal and not equal to zero. 
+    /// scratch_space is a preallocated buffer with size equal to sizes of lhs and rhs
+    fn batch_add_assign(lhs: &mut [Self], rhs: &[Self], scratch_space: &mut [Self::Base]);
 
-    // Returns x coordinate of affine point
+    /// Returns x coordinate of affine point
     fn get_x(&self) -> Self::Base;
 }
 
