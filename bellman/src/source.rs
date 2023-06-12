@@ -32,7 +32,7 @@ pub trait Source<G: CurveAffine> {
     /// Skips `amt` elements from the source, avoiding deserialization.
     fn skip(&mut self, amt: usize) -> Result<(), SynthesisError>;
 
-    /// Returns the element from the source. Fails if the point is at infinity.
+    /// Returns the next element from the source. Fails if the point is at infinity.
     fn next(&mut self) -> Result<G, SynthesisError>;
 }
 

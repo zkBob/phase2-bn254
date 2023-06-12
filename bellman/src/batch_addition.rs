@@ -98,7 +98,7 @@ impl<G: CurveAffine> BucketAdder<G> {
         }
         self.batch_count = 0;
 
-        // reapply colisions
+        // reapply collisions
         let collisions_count = self.collisions_count;
         self.collisions_count = 0;
         for i in 0..collisions_count {
