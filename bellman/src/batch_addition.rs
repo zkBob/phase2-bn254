@@ -1,16 +1,16 @@
-use pairing::{CurveAffine, CurveProjective,};
+use pairing::{CurveAffine, CurveProjective};
 
 const BATCH_SIZE: usize = 1024;
 const MAX_COLLISIONS_COUNT: usize = 128;
 
 pub struct BucketAdder<G: CurveAffine> {
     buckets: Vec<G>,
-    
+
     batch_lhs: Vec<G>,
     batch_rhs: Vec<G>,
     batch_buckets: Vec<usize>,
     batch_count: usize,
-    
+
     bucket_in_batch: Vec<bool>,
     collisions: Vec<(G, usize)>,
     collisions_count: usize,
@@ -21,23 +21,23 @@ pub struct BucketAdder<G: CurveAffine> {
 impl<G: CurveAffine> BucketAdder<G> {
     pub fn new(c: u32, _chunk: usize) -> BucketAdder<G> {
         let zero = G::zero();
-        BucketAdder { 
-            buckets: vec![zero; (1 << c) - 1], 
-            batch_lhs: vec![zero; BATCH_SIZE], 
-            batch_rhs: vec![zero; BATCH_SIZE], 
-            scratch_space: vec![zero.get_x(); BATCH_SIZE],
+        BucketAdder {
+            buckets: vec![zero; (1 << c) - 1],
+            batch_lhs: vec![zero; BATCH_SIZE],
+            batch_rhs: vec![zero; BATCH_SIZE],
             batch_buckets: vec![0; BATCH_SIZE],
             batch_count: 0,
             bucket_in_batch: vec![false; (1 << c) - 1],
             collisions: vec![(zero, 0); MAX_COLLISIONS_COUNT],
             collisions_count: 0,
+            scratch_space: vec![zero.get_x(); BATCH_SIZE],
         }
     }
 
     pub fn add_to_bucket(&mut self, base: G, bucket: usize) {
         self.add(base, bucket);
 
-        if self.batch_count == BATCH_SIZE || self.collisions_count >= MAX_COLLISIONS_COUNT  {
+        if self.batch_count == BATCH_SIZE || self.collisions_count == MAX_COLLISIONS_COUNT {
             self.process_batch();
         }
     }
@@ -54,11 +54,11 @@ impl<G: CurveAffine> BucketAdder<G> {
         // perform "addition" in place
         if self.buckets[bucket] == G::zero() {
             self.buckets[bucket] = base;
-            return
+            return;
         } else if base == G::zero() {
-            return
+            return;
         }
-        
+
         // bucket is already in batch, postpone that addition
         if self.bucket_in_batch[bucket] {
             self.collisions[self.collisions_count] = (base, bucket);
@@ -82,23 +82,28 @@ impl<G: CurveAffine> BucketAdder<G> {
         self.bucket_in_batch[bucket] = true;
         self.batch_count += 1;
     }
-    
-    fn process_batch(&mut self) {
-        CurveAffine::batch_add_assign(&mut self.batch_lhs[0..self.batch_count], &self.batch_rhs[0..self.batch_count], &mut self.scratch_space);
 
+    fn process_batch(&mut self) {
+        CurveAffine::batch_add_assign(
+            &mut self.batch_lhs[0..self.batch_count],
+            &self.batch_rhs[0..self.batch_count],
+            &mut self.scratch_space,
+        );
+
+        // update buckets
         for i in 0..self.batch_count {
             let bucket = self.batch_buckets[i];
             self.buckets[bucket] = self.batch_lhs[i];
             self.bucket_in_batch[bucket] = false;
         }
-
         self.batch_count = 0;
 
+        // reapply colisions
         let collisions_count = self.collisions_count;
         self.collisions_count = 0;
         for i in 0..collisions_count {
             let collision = self.collisions[i];
-            self.add(collision.0, collision.1);
+            self.add_to_bucket(collision.0, collision.1);
         }
     }
 }

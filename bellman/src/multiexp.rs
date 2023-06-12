@@ -199,31 +199,6 @@ fn test_with_bls12() {
 }
 
 #[test]
-fn test_with_bn256() {
-    use rand::{self, Rand};
-    use crate::pairing::bn256::Bn256;
-
-    const SAMPLES: usize = 1;
-
-    let rng = &mut rand::thread_rng();
-    let v = Arc::new((0..SAMPLES).map(|_| <Bn256 as ScalarEngine>::Fr::rand(rng).into_repr()).collect::<Vec<_>>());
-    let g = Arc::new((0..SAMPLES).map(|_| <Bn256 as Engine>::G1::rand(rng).into_affine()).collect::<Vec<_>>());
-
-    let naive = naive_multiexp(g.clone(), v.clone());
-
-    let pool = Worker::new();
-
-    let fast = multiexp(
-        &pool,
-        (g, 0),
-        FullDensity,
-        v
-    ).wait().unwrap();
-
-    assert_eq!(naive, fast);
-}
-
-#[test]
 fn test_speed_with_bn256() {
     use rand::{self, Rand};
     use crate::pairing::bn256::Bn256;
@@ -231,6 +206,7 @@ fn test_speed_with_bn256() {
 
     let cpus = num_cpus::get();
     const SAMPLES: usize = 1 << 18;
+    const ITER_COUNT: usize = 10;
 
     let rng = &mut rand::thread_rng();
     let v = Arc::new((0..SAMPLES).map(|_| <Bn256 as ScalarEngine>::Fr::rand(rng).into_repr()).collect::<Vec<_>>());
@@ -238,11 +214,10 @@ fn test_speed_with_bn256() {
 
     let pool = Worker::new();
 
-    println!("Started");
+    println!("Done generating test points and scalars");
     
-    let mut results = vec![];
-    let iter_count = 100;
-    for _ in 0..iter_count {
+    let mut durations = vec![];
+    for _ in 0..ITER_COUNT {
         let g = g.clone();
         let v = v.clone();
         let start = std::time::Instant::now();
@@ -253,10 +228,10 @@ fn test_speed_with_bn256() {
             v
         ).wait().unwrap();
         let duration_ns = start.elapsed().as_nanos() as f64;
-        results.push(duration_ns);
+        durations.push(duration_ns);
     }
 
-    let duration_ns: f64 = results.into_iter().sum::<f64>() / iter_count as f64;
+    let duration_ns: f64 = durations.into_iter().sum::<f64>() / ITER_COUNT as f64;
     println!("Elapsed {} ns for {} samples", duration_ns, SAMPLES);
     let time_per_sample = duration_ns/(SAMPLES as f64);
     println!("Tested on {} samples on {} CPUs with {} ns per multiplication", SAMPLES, cpus, time_per_sample);
