@@ -487,7 +487,7 @@ impl CurveAffine for Fr {
     }
 
     fn get_x(&self) -> Self::Base {
-        unimplemented!()
+        *self
     }
 
     fn batch_add_assign(lhs: &mut [Self], rhs: &[Self], _scratch_space: &mut [Self::Base]) {
