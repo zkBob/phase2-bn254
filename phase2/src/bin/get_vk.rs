@@ -1,17 +1,21 @@
 extern crate exitcode;
 // extern crate fawkes_crypto;
 extern crate fawkes_crypto_phase2;
-extern crate libzeropool;
+
 extern crate rand;
 
-use std::fs::File;
 
-use libzeropool::fawkes_crypto::backend::bellman_groth16::{
-    Parameters,
-    {engines::Bn256, verifier::VK},
-};
 
+#[cfg(feature = "wasm")]
+fn main(){}
+#[cfg(feature = "default")]
 fn main() {
+
+    use std::fs::File;
+    use libzeropool::fawkes_crypto::backend::bellman_groth16::{
+        Parameters,
+        {engines::Bn256, verifier::VK},
+    };
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 3 {
         println!("Usage: \n<in_params.params> <out_vk.json>");

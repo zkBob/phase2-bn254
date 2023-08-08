@@ -1,49 +1,7 @@
 extern crate exitcode;
 extern crate fawkes_crypto_phase2;
-extern crate libzeropool;
+
 extern crate rand;
-// extern crate bellman_ce;
-
-use libzeropool::{
-    circuit::tree::{tree_update, CTreePub, CTreeSec},
-    circuit::{tx::{c_transfer, CTransferPub, CTransferSec}, delegated_deposit::{CDelegatedDepositBatchPub, CDelegatedDepositBatchSec, check_delegated_deposit_batch}},
-    POOL_PARAMS,
-    fawkes_crypto::{
-        engines::bn256::Fr,
-        backend::bellman_groth16::{
-            engines::{Bn256, Engine},
-            BellmanCS,
-            Parameters
-        },
-        circuit::cs::{CS,BuildCS},
-        core::signal::Signal,
-        
-    },
-    
-};
-use std::fs::File;
-// use bellman_ce::pairing::CurveAffine;
-
-// use fawkes_crypto::{
-//     backend::bellman_groth16::{
-//         engines::{Bn256, Engine},
-//         BellmanCS,
-//     },
-//     circuit::cs::BuildCS,
-//     core::signal::Signal,
-// };
-use fawkes_crypto_phase2::parameters::MPCParameters;
-// use fawkes_crypto::backend::bellman_groth16::Parameters;
-// use fawkes_crypto::circuit::cs::CS;
-// use fawkes_crypto::engines::bn256::Fr;
-
-fn tx_circuit<C:CS<Fr=Fr>>(public: CTransferPub<C>, secret: CTransferSec<C>) {
-    c_transfer(&public, &secret, &*POOL_PARAMS);
-}
-fn delegated_deposit<C:CS<Fr=Fr>>(public: CDelegatedDepositBatchPub<C>, secret: CDelegatedDepositBatchSec<C>) {
-    check_delegated_deposit_batch(&public, &secret, &*POOL_PARAMS);
-}
-
 /*
 pub fn prepare_parameters<E: Engine, Pub: Signal<BuildCS<E::Fr>>, Sec: Signal<BuildCS<E::Fr>>, C: Fn(Pub, Sec)>(
     circuit: C,
@@ -76,8 +34,43 @@ pub fn prepare_parameters<E: Engine, Pub: Signal<BuildCS<E::Fr>>, Sec: Signal<Bu
 }
 
  */
+#[cfg(feature = "wasm")]
+fn main(){}
 
+#[cfg(feature = "default")]
 fn main() {
+    use fawkes_crypto_phase2::parameters::MPCParameters;
+    use libzeropool::{
+        circuit::tree::{tree_update, CTreePub, CTreeSec},
+        circuit::{
+            delegated_deposit::{
+                check_delegated_deposit_batch, CDelegatedDepositBatchPub, CDelegatedDepositBatchSec,
+            },
+            tx::{c_transfer, CTransferPub, CTransferSec},
+        },
+        fawkes_crypto::{
+            backend::bellman_groth16::{
+                engines::{Bn256, Engine},
+                BellmanCS, Parameters,
+            },
+            circuit::cs::{BuildCS, CS},
+            core::signal::Signal,
+            engines::bn256::Fr,
+        },
+        POOL_PARAMS,
+    };
+    use std::fs::File;
+
+    fn tx_circuit<C: CS<Fr = Fr>>(public: CTransferPub<C>, secret: CTransferSec<C>) {
+        c_transfer(&public, &secret, &*POOL_PARAMS);
+    }
+    fn delegated_deposit<C: CS<Fr = Fr>>(
+        public: CDelegatedDepositBatchPub<C>,
+        secret: CDelegatedDepositBatchSec<C>,
+    ) {
+        check_delegated_deposit_batch(&public, &secret, &*POOL_PARAMS);
+    }
+
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 4 {
         println!("Usage: \n<transfer/tree_update> <out_params.params> <path/to/phase1radix>");
