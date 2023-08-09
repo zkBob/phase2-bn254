@@ -43,8 +43,8 @@ cfg_if! {
             ($($t:tt)*) => (web_sys::console::log_1(&format_args!($($t)*).to_string().into()))
         }
 
-        #[wasm_bindgen]
-        pub fn contribute(params: Vec<u8>, entropy: Vec<u8>) -> Result<Vec<u8>, JsValue> {
+        // #[wasm_bindgen]
+        pub fn contribute(params: Vec<u8>, entropy: &Vec<u8>) -> Result<Vec<u8>, JsValue> {
             console_error_panic_hook::set_once();
             let disallow_points_at_infinity = false;
 
