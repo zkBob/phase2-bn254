@@ -44,7 +44,7 @@ cfg_if! {
         }
 
         // #[wasm_bindgen]
-        pub fn contribute(params: Vec<u8>, entropy: &Vec<u8>) -> Result<Vec<u8>, JsValue> {
+        pub fn contribute(params: Vec<u8>, entropy: Vec<u8>) -> Result<Vec<u8>, JsValue> {
             console_error_panic_hook::set_once();
             let disallow_points_at_infinity = false;
 
