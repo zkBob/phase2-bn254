@@ -20,9 +20,7 @@ use crate::pairing::ff::{
     PrimeField
 };
 
-use super::{
-    SynthesisError
-};
+use super::SynthesisError;
 
 use super::worker::Worker;
 pub use super::group::*;
@@ -500,9 +498,7 @@ fn test_field_element_multiplication_bn256() {
     use rand::{self, Rand};
     use crate::pairing::bn256::Bn256;
     use crate::pairing::bn256::Fr;
-    use num_cpus;
 
-    let cpus = num_cpus::get();
     const SAMPLES: usize = 1 << 22;
 
     let rng = &mut rand::thread_rng();
@@ -521,7 +517,7 @@ fn test_field_element_multiplication_bn256() {
     let duration_ns = start.elapsed().as_nanos() as f64;
     println!("Elapsed {} ns for {} samples", duration_ns, SAMPLES);
     let time_per_sample = duration_ns/(SAMPLES as f64);
-    println!("Tested on {} samples on {} CPUs with {} ns per field element multiplication", SAMPLES, cpus, time_per_sample);
+    println!("Tested on {} samples with {} ns per field element multiplication", SAMPLES, time_per_sample);
 }
 
 #[test]
@@ -529,9 +525,7 @@ fn test_fft_bn256() {
     use rand::{self, Rand};
     use crate::pairing::bn256::Bn256;
     use crate::pairing::bn256::Fr;
-    use num_cpus;
 
-    let cpus = num_cpus::get();
     const SAMPLES: usize = 1 << 27;
 
     let rng = &mut rand::thread_rng();
@@ -548,5 +542,5 @@ fn test_fft_bn256() {
     let duration_ns = start.elapsed().as_nanos() as f64;
     println!("Elapsed {} ns for {} samples", duration_ns, SAMPLES);
     let time_per_sample = duration_ns/(SAMPLES as f64);
-    println!("Tested on {} samples on {} CPUs with {} ns per field element multiplication", SAMPLES, cpus, time_per_sample);
+    println!("Tested on {} samples with {} ns per field element multiplication", SAMPLES, time_per_sample);
 }

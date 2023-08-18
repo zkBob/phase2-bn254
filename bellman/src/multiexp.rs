@@ -201,9 +201,7 @@ fn test_with_bls12() {
 fn test_speed_with_bn256() {
     use rand::{self, Rand};
     use crate::pairing::bn256::Bn256;
-    use num_cpus;
 
-    let cpus = num_cpus::get();
     const SAMPLES: usize = 1 << 22;
 
     let rng = &mut rand::thread_rng();
@@ -225,14 +223,13 @@ fn test_speed_with_bn256() {
     let duration_ns = start.elapsed().as_nanos() as f64;
     println!("Elapsed {} ns for {} samples", duration_ns, SAMPLES);
     let time_per_sample = duration_ns/(SAMPLES as f64);
-    println!("Tested on {} samples on {} CPUs with {} ns per multiplication", SAMPLES, cpus, time_per_sample);
+    println!("Tested on {} samples with {} ns per multiplication", SAMPLES, time_per_sample);
 }
 
 #[test]
 fn test_bench_sparse_multiexp() {
     use rand::{XorShiftRng, SeedableRng, Rand, Rng};
     use crate::pairing::bn256::Bn256;
-    use num_cpus;
 
     const SAMPLES: usize = 1 << 22;
     let rng = &mut XorShiftRng::from_seed([0x3dbe6259, 0x8d313d76, 0x3237db17, 0xe5bc0654]);

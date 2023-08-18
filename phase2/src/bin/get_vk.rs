@@ -1,10 +1,7 @@
 extern crate exitcode;
-// extern crate fawkes_crypto;
 extern crate fawkes_crypto_phase2;
 extern crate libzeropool;
 extern crate rand;
-
-use std::fs::File;
 
 use libzeropool::fawkes_crypto::backend::bellman_groth16::{
     Parameters,
@@ -23,7 +20,7 @@ fn main() {
     println!("Exporting {}...", params_filename);
 
     let fp = std::path::Path::new(params_filename);
-    let mut raw_parameters = std::fs::read(fp).unwrap();
+    let raw_parameters = std::fs::read(fp).unwrap();
     let mpc = Parameters::<Bn256>::read(&mut raw_parameters.as_slice(), true, true).unwrap();
 
     let vk = mpc.0.vk.clone();

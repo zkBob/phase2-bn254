@@ -4,9 +4,6 @@ extern crate byteorder;
 extern crate num_cpus;
 extern crate crossbeam;
 
-#[cfg(feature = "wasm")]
-use bellman_ce::singlecore::Worker;
-#[cfg(not(feature = "wasm"))]
 use bellman_ce::multicore::Worker;
 
 use byteorder::{
@@ -22,12 +19,8 @@ use std::{
         Write,
         BufReader
     },
-    fs::{
-        File
-    },
-    sync::{
-        Arc
-    }
+    fs::File,
+    sync::Arc
 };
 
 use bellman_ce::pairing::{

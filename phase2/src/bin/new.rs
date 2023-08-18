@@ -2,7 +2,6 @@ extern crate exitcode;
 extern crate fawkes_crypto_phase2;
 extern crate libzeropool;
 extern crate rand;
-// extern crate bellman_ce;
 
 use libzeropool::{
     circuit::tree::{tree_update, CTreePub, CTreeSec},
@@ -12,8 +11,7 @@ use libzeropool::{
         engines::bn256::Fr,
         backend::bellman_groth16::{
             engines::{Bn256, Engine},
-            BellmanCS,
-            Parameters
+            BellmanCS
         },
         circuit::cs::{CS,BuildCS},
         core::signal::Signal,
@@ -22,20 +20,7 @@ use libzeropool::{
     
 };
 use std::fs::File;
-// use bellman_ce::pairing::CurveAffine;
-
-// use fawkes_crypto::{
-//     backend::bellman_groth16::{
-//         engines::{Bn256, Engine},
-//         BellmanCS,
-//     },
-//     circuit::cs::BuildCS,
-//     core::signal::Signal,
-// };
 use fawkes_crypto_phase2::parameters::MPCParameters;
-// use fawkes_crypto::backend::bellman_groth16::Parameters;
-// use fawkes_crypto::circuit::cs::CS;
-// use fawkes_crypto::engines::bn256::Fr;
 
 fn tx_circuit<C:CS<Fr=Fr>>(public: CTransferPub<C>, secret: CTransferSec<C>) {
     c_transfer(&public, &secret, &*POOL_PARAMS);
@@ -43,39 +28,6 @@ fn tx_circuit<C:CS<Fr=Fr>>(public: CTransferPub<C>, secret: CTransferSec<C>) {
 fn delegated_deposit<C:CS<Fr=Fr>>(public: CDelegatedDepositBatchPub<C>, secret: CDelegatedDepositBatchSec<C>) {
     check_delegated_deposit_batch(&public, &secret, &*POOL_PARAMS);
 }
-
-/*
-pub fn prepare_parameters<E: Engine, Pub: Signal<BuildCS<E::Fr>>, Sec: Signal<BuildCS<E::Fr>>, C: Fn(Pub, Sec)>(
-    circuit: C,
-) -> Parameters<E> {
-    let ref rcs = BuildCS::rc_new();
-    let signal_pub = Pub::alloc(rcs, None);
-    signal_pub.inputize();
-    let signal_sec = Sec::alloc(rcs, None);
-
-    circuit(signal_pub, signal_sec);
-
-    let bcs = BellmanCS::<E, BuildCS<E::Fr>>::new(rcs.clone());
-
-    let ref mut rng = OsRng::new();
-    let bp = bellman::groth16::generate_random_parameters(bcs, rng).unwrap();
-    let cs=rcs.borrow();
-
-    let num_gates = cs.gates.len();
-
-    let mut buf = std::io::Cursor::new(vec![]);
-    let mut c = brotli::CompressorWriter::new(&mut buf, 4096, 9, 22);
-    for g in cs.gates.iter() {
-        c.write_all(&g.try_to_vec().unwrap()).unwrap();
-    }
-
-    c.flush().unwrap();
-    drop(c);
-
-    Parameters(bp, num_gates as u32, buf.into_inner(), cs.const_tracker.clone())
-}
-
- */
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
