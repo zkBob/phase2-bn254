@@ -43,15 +43,15 @@ package = "libzeropool-zkbob"
 version = "1.1.0"
 default-features = false
 features = ["in3out127"]
+optional = true
 
 [dependencies.bellman_ce]
 version = "0.3.4"
 package = "fawkes-crypto-bellman_ce"
 git = "https://github.com/zkBob/phase2-bn254"
 branch = "multicore-wasm"
-default-features = false # active features depend on build type
 
 [features]
-default = ["bellman_ce/multicore", "rust-crypto"]
+default = ["bellman_ce/multicore", "rust-crypto", "libzeropool"]
 wasm = ["wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook", "bellman_ce/wasm"]
 multicore = ["bellman_ce/multicore"]
