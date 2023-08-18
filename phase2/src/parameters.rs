@@ -464,23 +464,40 @@ impl MPCParameters {
 
         #[cfg(feature = "wasm")]
         fn batch_exp<C: CurveAffine>(bases: &mut [C], coeff: C::Scalar, progress_update_interval: &u32, total_exps: &u32) {
+            let worker = Worker::new();
             let coeff = coeff.into_repr();
 
             let mut projective = vec![C::Projective::zero(); bases.len()];
 
             // Perform wNAF, placing results into `projective`.
-            let mut wnaf = Wnaf::new();
-            let mut count = 0;
-            for (base, projective) in bases.iter_mut().zip(projective.iter_mut()) {
-                *projective = wnaf.base(base.into_projective(), 1).scalar(coeff);
-                count = count + 1;
-                if *progress_update_interval > 0 && count % *progress_update_interval == 0 {
-                    println!("progress {} {}", *progress_update_interval, *total_exps)
-                }
-            }
+            worker.scope(bases.len(), |scope, chunk_size| {
+                for (bases, projective) in bases.chunks_mut(chunk_size)
+                    .zip(projective.chunks_mut(chunk_size))
+                    {
+                        scope.spawn(move |_| {
+                            let mut wnaf = Wnaf::new();
+                            let mut count = 0;
+                            for (base, projective) in bases.iter_mut()
+                                .zip(projective.iter_mut())
+                                {
+                                    *projective = wnaf.base(base.into_projective(), 1).scalar(coeff);
+                                    count = count + 1;
+                                    if *progress_update_interval > 0 && count % *progress_update_interval == 0 {
+                                        println!("progress {} {}", *progress_update_interval, *total_exps)
+                                    }
+                                }
+                        });
+                    }
+            });
 
-            // Perform batch normalization
-            C::Projective::batch_normalization(&mut projective);
+             // Perform batch normalization
+            worker.scope(projective.len(), |scope, chunk_size| {
+                for projective in projective.chunks_mut(chunk_size) {
+                    scope.spawn(move |_| {
+                        C::Projective::batch_normalization(projective);
+                    });
+                }
+            });
 
             // Turn it all back into affine points
             for (projective, affine) in projective.iter().zip(bases.iter_mut()) {

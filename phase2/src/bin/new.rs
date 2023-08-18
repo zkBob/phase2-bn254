@@ -32,7 +32,7 @@ fn delegated_deposit<C:CS<Fr=Fr>>(public: CDelegatedDepositBatchPub<C>, secret: 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() != 4 {
-        println!("Usage: \n<transfer/tree_update> <out_params.params> <path/to/phase1radix>");
+        println!("Usage: \n<transfer/tree_update/delegated_deposit> <out_params.params> <path/to/phase1radix>");
         std::process::exit(exitcode::USAGE);
     }
     let circuit_name = &args[1];
