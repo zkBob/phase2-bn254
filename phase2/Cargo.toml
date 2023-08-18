@@ -49,7 +49,7 @@ version = "0.3.4"
 package = "fawkes-crypto-bellman_ce"
 git = "https://github.com/zkBob/phase2-bn254"
 branch = "multicore-wasm"
-optional = true
+default-features = false # active features depend on build type
 
 [features]
 default = ["bellman_ce/multicore", "rust-crypto"]
