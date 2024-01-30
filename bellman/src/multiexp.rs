@@ -1,3 +1,4 @@
+use crate::batch_addition::BucketAdder;
 use crate::pairing::{
     CurveAffine,
     CurveProjective,
@@ -49,7 +50,7 @@ fn multiexp_inner<Q, D, G, S>(
         let mut bases = bases.new();
 
         // Create space for the buckets
-        let mut buckets = vec![G::Projective::zero(); (1 << c) - 1];
+        let mut buckets = BucketAdder::new(c, chunk);
 
         // only the first round uses this
         let handle_trivial = chunk == 0;
@@ -80,7 +81,7 @@ fn multiexp_inner<Q, D, G, S>(
                     let exp = exp.as_ref()[0] % (1 << c);
 
                     if exp != 0 {
-                        bases.add_assign_mixed(&mut buckets[(exp - 1) as usize])?;
+                        buckets.add_to_bucket(bases.next()?, (exp - 1) as usize);
                     } else {
                         bases.skip(1)?;
                     }
@@ -93,8 +94,8 @@ fn multiexp_inner<Q, D, G, S>(
         //                    (a) + b +
         //                    ((a) + b) + c
         let mut running_sum = G::Projective::zero();
-        for exp in buckets.into_iter().rev() {
-            running_sum.add_assign(&exp);
+        for exp in buckets.finalize().into_iter().rev() {
+            running_sum.add_assign_mixed(&exp);
             acc.add_assign(&running_sum);
         }
 
@@ -204,7 +205,8 @@ fn test_speed_with_bn256() {
     use num_cpus;
 
     let cpus = num_cpus::get();
-    const SAMPLES: usize = 1 << 22;
+    const SAMPLES: usize = 1 << 18;
+    const ITER_COUNT: usize = 10;
 
     let rng = &mut rand::thread_rng();
     let v = Arc::new((0..SAMPLES).map(|_| <Bn256 as ScalarEngine>::Fr::rand(rng).into_repr()).collect::<Vec<_>>());
@@ -212,17 +214,24 @@ fn test_speed_with_bn256() {
 
     let pool = Worker::new();
 
-    let start = std::time::Instant::now();
+    println!("Done generating test points and scalars");
+    
+    let mut durations = vec![];
+    for _ in 0..ITER_COUNT {
+        let g = g.clone();
+        let v = v.clone();
+        let start = std::time::Instant::now();
+        let _fast = multiexp(
+            &pool,
+            (g, 0),
+            FullDensity,
+            v
+        ).wait().unwrap();
+        let duration_ns = start.elapsed().as_nanos() as f64;
+        durations.push(duration_ns);
+    }
 
-    let _fast = multiexp(
-        &pool,
-        (g, 0),
-        FullDensity,
-        v
-    ).wait().unwrap();
-
-
-    let duration_ns = start.elapsed().as_nanos() as f64;
+    let duration_ns: f64 = durations.into_iter().sum::<f64>() / ITER_COUNT as f64;
     println!("Elapsed {} ns for {} samples", duration_ns, SAMPLES);
     let time_per_sample = duration_ns/(SAMPLES as f64);
     println!("Tested on {} samples on {} CPUs with {} ns per multiplication", SAMPLES, cpus, time_per_sample);

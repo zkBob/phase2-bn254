@@ -31,6 +31,9 @@ pub trait Source<G: CurveAffine> {
 
     /// Skips `amt` elements from the source, avoiding deserialization.
     fn skip(&mut self, amt: usize) -> Result<(), SynthesisError>;
+
+    /// Returns the next element from the source. Fails if the point is at infinity.
+    fn next(&mut self) -> Result<G, SynthesisError>;
 }
 
 impl<G: CurveAffine> SourceBuilder<G> for (Arc<Vec<G>>, usize) {
@@ -66,6 +69,20 @@ impl<G: CurveAffine> Source<G> for (Arc<Vec<G>>, usize) {
         self.1 += amt;
 
         Ok(())
+    }
+
+    fn next(&mut self) -> Result<G, SynthesisError> {
+        if self.0.len() <= self.1 {
+            return Err(io::Error::new(io::ErrorKind::UnexpectedEof, "expected more bases when adding from source").into());
+        }
+
+        if self.0[self.1].is_zero() {
+            return Err(SynthesisError::UnexpectedIdentity)
+        }
+        
+        let p = self.0[self.1];
+        self.1 += 1;
+        Ok(p)
     }
 }
 
