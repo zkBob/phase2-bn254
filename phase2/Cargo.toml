@@ -24,7 +24,7 @@ num-traits = "0.2.8"
 itertools = "0.9.0"
 hex = "0.4.0"
 cfg-if = "0.1.10"
-bellman_ce = { package = "fawkes-crypto-bellman_ce", version="0.3.1", path = "../bellman", default-features = false } # active features depend on build type
+bellman_ce = { package = "fawkes-crypto-zkbob-bellman_ce", version="0.4.0", path = "../bellman", default-features = false } # active features depend on build type
 
 # needed for native only but don't break wasm if present
 num_cpus = "1"

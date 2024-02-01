@@ -27,5 +27,5 @@ hex = "0.4.0"
 memmap = "0.7.0"
 itertools = "0.9.0"
 
-bellman_ce = { package = "fawkes-crypto-bellman_ce", version = "0.3.1",  path = "../bellman" }
+bellman_ce = { package = "fawkes-crypto-zkbob-bellman_ce", version = "0.4.0",  path = "../bellman" }
 log = "0.4.8"
