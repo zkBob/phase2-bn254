@@ -1,6 +1,6 @@
 [package]
 name = "fawkes-crypto-phase2"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Sean Bowe <ewillbefull@gmail.com>"]
 description = "Library for performing MPCs for creating zk-SNARK public parameters"
 documentation = "https://docs.rs/fawkes_crypto_phase2"
