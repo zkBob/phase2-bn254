@@ -346,8 +346,6 @@ pub fn generate_parameters<E, C>(
     //     // Compute powers of tau
     //     if verbose {eprintln!("computing powers of tau...")};
 
-    //     let start = std::time::Instant::now();
-
     //     {
     //         let domain = domain.as_mut();
     //         worker.scope(domain.len(), |scope, chunk| {
@@ -364,7 +362,6 @@ pub fn generate_parameters<E, C>(
     //             }
     //         });
     //     }
-    //     if verbose {eprintln!("powers of tau stage 1 done in {} s", start.elapsed().as_millis() as f64 / 1000.0);};
 
     //     // z_at_tau = t(x)
     //     let z_at_tau = domain.z(&tau);
@@ -384,8 +381,6 @@ pub fn generate_parameters<E, C>(
         // Compute powers of tau
         if verbose {eprintln!("computing powers of tau...")};
 
-        let start = crate::log::Stopwatch::new();
-
         {
             let domain = domain.as_mut();
             worker.scope(domain.len(), |scope, chunk| {
@@ -402,7 +397,6 @@ pub fn generate_parameters<E, C>(
                 }
             });
         }
-        if verbose {eprintln!("powers of tau stage 1 done in {} s", start.elapsed());};
 
         // z_at_tau = t(x)
         z_at_tau = domain.z(&tau);
@@ -412,8 +406,6 @@ pub fn generate_parameters<E, C>(
         gamma2_z_t.mul_assign(&gamma);
 
         if verbose {eprintln!("computing the `G1^(gamma^2 * Z(t) * t^i)` query with multiple threads...")};
-
-        let start = crate::log::Stopwatch::new();
 
         // Compute the H query with multiple threads
         worker.scope(gamma2_z_t_g1.len(), |scope, chunk| {
@@ -437,7 +429,6 @@ pub fn generate_parameters<E, C>(
                 });
             }
         });
-        if verbose {eprintln!("computing the `G1^(gamma^2 * Z(t) * t^i)` query done in {} s", start.elapsed());};
     }
 
     // G1^{gamma * A_i(t)} for 0 <= i <= num_variables
@@ -476,17 +467,13 @@ pub fn generate_parameters<E, C>(
 
     if verbose {eprintln!("using inverse FFT to convert to intepolation coefficients...")};
     
-    let start = crate::log::Stopwatch::new();
-
     // Use inverse FFT to convert to intepolation coefficients
     domain.ifft(&worker);
     let powers_of_tau = domain.into_coeffs();
     // domain is now a set of scalars
 
-    if verbose {eprintln!("powers of tau evaluation in radix2 domain in {} s", start.elapsed())};
 
     if verbose {eprintln!("evaluating polynomials...")};
-    let start = crate::log::Stopwatch::new();
 
     // overall strategy:
     // a_g1, a_g2, c_1_g1, c_2_g1 should be combined together by computing
@@ -659,8 +646,6 @@ pub fn generate_parameters<E, C>(
     // for _ in 0..assembly.num_inputs {
     //     c_1_g1.remove(0);
     // }
-
-    if verbose {eprintln!("evaluating polynomials done in {} s", start.elapsed());};
 
     // // Don't allow any elements be unconstrained, so that
     // // the L query is always fully dense.

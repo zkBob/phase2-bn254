@@ -1,5 +1,3 @@
-use crate::log::Stopwatch;
-
 use rand::Rng;
 
 use std::sync::Arc;
@@ -248,9 +246,7 @@ impl<E:Engine> PreparedProver<E> {
             multiexp(&worker, params.get_h(a.len())?, FullDensity, a)
         };
 
-        //elog_verbose!("{} seconds for prover for H evaluation (mostly FFT)", stopwatch.elapsed());
 
-        //let stopwatch = Stopwatch::new();
 
         // TODO: Check that difference in operations for different chunks is small
 
@@ -330,8 +326,6 @@ impl<E:Engine> PreparedProver<E> {
         g_c.add_assign(&b1_answer);
         g_c.add_assign(&h.wait()?);
         g_c.add_assign(&l.wait()?);
-
-        //elog_verbose!("{} seconds for prover for point multiplication", stopwatch.elapsed());
 
         Ok(Proof {
             a: g_a.into_affine(),
