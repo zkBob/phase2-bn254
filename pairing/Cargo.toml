@@ -1,8 +1,8 @@
 [package]
-name = "fawkes-crypto-pairing_ce"
+name = "fawkes-crypto-zkbob-pairing_ce"
 
 # Remember to change version string in README.md.
-version = "0.18.1"
+version = "0.19.0"
 authors = [
     "Sean Bowe <ewillbefull@gmail.com>",
     "Jack Grigg <jack@z.cash>",
@@ -12,9 +12,9 @@ authors = [
 license = "MIT/Apache-2.0"
 
 description = "Pairing-friendly elliptic curve library"
-documentation = "https://docs.rs/fawkes_crypto_pairing_ce/"
-homepage = "https://github.com/zeropoolnetwork/phase2-bn254"
-repository = "https://github.com/zeropoolnetwork/phase2-bn254"
+documentation = "https://docs.rs/fawkes_crypto_zkbob_pairing_ce/"
+homepage = "https://github.com/zkbob/phase2-bn254"
+repository = "https://github.com/zkbob/phase2-bn254"
 edition = "2018"
 
 [dependencies]

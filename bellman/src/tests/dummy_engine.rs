@@ -485,4 +485,16 @@ impl CurveAffine for Fr {
     fn into_projective(&self) -> Self::Projective {
         *self
     }
+
+    fn get_x(&self) -> Self::Base {
+        *self
+    }
+
+    fn batch_add_assign(lhs: &mut [Self], rhs: &[Self], _scratch_space: &mut [Self::Base]) {
+        for i in 0..lhs.len() {
+            let mut c = lhs[i].into_projective();
+            c.add_assign_mixed(&rhs[i]);
+            lhs[i] = c;
+        }
+    }
 }
